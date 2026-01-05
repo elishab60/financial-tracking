@@ -120,8 +120,9 @@ export function AssetsTable({ initialAssets }: AssetsTableProps) {
                         <TableHeader className="bg-white/[0.01]">
                             <TableRow className="border-white/[0.04] hover:bg-transparent">
                                 <TableHead className="text-[10px] uppercase tracking-widest font-bold text-zinc-500 py-6 pl-8">Actif</TableHead>
+                                <TableHead className="text-[10px] uppercase tracking-widest font-bold text-zinc-500 text-right">Quantité</TableHead>
                                 <TableHead className="text-[10px] uppercase tracking-widest font-bold text-zinc-500 text-right">Prix</TableHead>
-                                <TableHead className="text-[10px] uppercase tracking-widest font-bold text-zinc-500 text-right">PRU</TableHead>
+                                <TableHead className="text-[10px] uppercase tracking-widest font-bold text-zinc-500 text-right">Prix d'Achat</TableHead>
                                 <TableHead className="text-[10px] uppercase tracking-widest font-bold text-zinc-500 text-right">Performance</TableHead>
                                 <TableHead className="text-[10px] uppercase tracking-widest font-bold text-zinc-500 text-right">Valeur</TableHead>
                                 <TableHead className="text-right pr-8"></TableHead>
@@ -145,9 +146,13 @@ export function AssetsTable({ initialAssets }: AssetsTableProps) {
                                                     <span className="font-bold text-white text-sm">{asset.name}</span>
                                                     <div className="flex items-center gap-2 mt-1">
                                                         {asset.symbol && <span className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest">{asset.symbol}</span>}
-                                                        <span className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest">• {asset.quantity} {asset.symbol}</span>
                                                     </div>
                                                 </div>
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                            <div className="font-bold text-white text-sm">
+                                                {asset.quantity}
                                             </div>
                                         </TableCell>
                                         <TableCell className="text-right">
@@ -156,8 +161,15 @@ export function AssetsTable({ initialAssets }: AssetsTableProps) {
                                             </div>
                                         </TableCell>
                                         <TableCell className="text-right">
-                                            <div className="font-bold text-zinc-400 text-sm">
-                                                {asset.buy_price ? formatCurrency(asset.buy_price) : '-'}
+                                            <div className="flex flex-col items-end">
+                                                <div className="font-bold text-zinc-400 text-sm">
+                                                    {asset.buy_price ? formatCurrency(asset.buy_price) : '-'}
+                                                </div>
+                                                {asset.buy_date && (
+                                                    <div className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest mt-0.5">
+                                                        {new Date(asset.buy_date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: '2-digit' })}
+                                                    </div>
+                                                )}
                                             </div>
                                         </TableCell>
                                         <TableCell className="text-right">

@@ -10,12 +10,14 @@ import {
     ArrowLeftRight,
     Settings,
     PlusCircle,
-    TrendingUp
+    TrendingUp,
+    Search
 } from "lucide-react"
 
 const navigation = [
     { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
     { name: 'Actifs', href: '/assets', icon: Wallet },
+    { name: 'Recherche', href: '/recherche', icon: Search },
     { name: 'Comptes', href: '/accounts', icon: CreditCard },
     { name: 'Transactions', href: '/transactions', icon: ArrowLeftRight },
     { name: 'Paramètres', href: '/settings', icon: Settings },

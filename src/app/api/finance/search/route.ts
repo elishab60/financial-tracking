@@ -13,8 +13,8 @@ export async function GET(req: NextRequest) {
         if (!yahooFinance || typeof yahooFinance.search !== 'function') {
             throw new Error("Yahoo Finance instance is not correctly initialized");
         }
-        const results = await yahooFinance.search(query)
-        return NextResponse.json(results)
+        const response = await yahooFinance.search(query)
+        return NextResponse.json({ results: response.quotes })
     } catch (error: any) {
         console.error("Yahoo Finance Search Error Details:", {
             message: error.message,

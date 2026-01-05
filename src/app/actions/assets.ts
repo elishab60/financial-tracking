@@ -28,12 +28,35 @@ export async function getAssets() {
         let totalQuantityFromPurchases = 0
 
         for (const p of purchases) {
-            totalQuantityFromPurchases += p.quantity
-            totalInvested += (p.quantity * p.unit_price) + (p.fees || 0)
+            const q = Number(p.quantity)
+            const price = Number(p.unit_price)
+            const fees = Number(p.fees || 0)
+
+            totalQuantityFromPurchases += q
+            totalInvested += (q * price) + fees
         }
 
-        // Fallback to legacy buy_price if no purchases exist
-        if (purchases.length === 0 && asset.buy_price != null && asset.quantity > 0) {
+        // Check for missing legacy quantity (Hybrid mode for old assets)
+        // If current asset quantity is greater than sum of purchases, assume the difference is from legacy initial buy
+        const currentAssetQty = Number(asset.quantity || 0)
+        if (currentAssetQty > totalQuantityFromPurchases && asset.buy_price != null) {
+            const diff = currentAssetQty - totalQuantityFromPurchases
+            const legacyPrice = Number(asset.buy_price)
+            const legacyFees = Number(asset.fees || 0) // We can't easily split fees, but if we assume discrepancy is initial... 
+            // Actually, legacy fees might be total fees? Let's just use price * quantity.
+            // Be careful not to double count fees if they are already in the array?
+            // If purchase array is empty, fees are legacy. If mixed, fees might be messy.
+            // Simplest: Add (diff * price). For fees, only add if totalQuantityFromPurchases was 0 (pure fallback)?
+            // Better: Add proportionate fees? Or just ignore legacy fees in hybrid?
+            // Let's stick to price.
+
+            totalInvested += (diff * legacyPrice)
+            // Note: We don't verify legacy fees distribution, assuming new system handles fees better.
+            totalQuantityFromPurchases += diff
+        }
+
+        // Pure Fallback (if somehow logic above failed or explicit legacy handling needed)
+        if (purchases.length === 0 && asset.buy_price != null && asset.quantity > 0 && totalInvested === 0) {
             totalInvested = (asset.quantity * asset.buy_price) + (asset.fees || 0)
             totalQuantityFromPurchases = asset.quantity
         }
@@ -75,6 +98,7 @@ export async function getAssets() {
             market_value: marketValue,
             buy_price: asset.buy_price,
             total_invested: totalInvested > 0 ? totalInvested : undefined,
+            pru: pru,
             pnl_value: pnlValue,
             pnl_percent: pnlPercent,
             cost_basis: totalInvested > 0 ? totalInvested : undefined,

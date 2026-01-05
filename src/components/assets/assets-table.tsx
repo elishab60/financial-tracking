@@ -167,11 +167,9 @@ export function AssetsTable({ initialAssets }: AssetsTableProps) {
                                                 <div className="font-bold text-zinc-400 text-sm">
                                                     {displayPrice ? formatCurrency(displayPrice) : '-'}
                                                 </div>
-                                                {displayDate && (
-                                                    <div className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest mt-0.5">
-                                                        {new Date(displayDate).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: '2-digit' })}
-                                                    </div>
-                                                )}
+                                                <div className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest mt-0.5">
+                                                    {displayDate ? new Date(displayDate).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: '2-digit' }) : ''}
+                                                </div>
                                             </div>
                                         </TableCell>
                                         <TableCell className="text-right">
@@ -205,7 +203,8 @@ export function AssetsTable({ initialAssets }: AssetsTableProps) {
                         </TableBody>
                     </Table>
                 </div>
-            )}
-        </div>
+            )
+            }
+        </div >
     )
 }

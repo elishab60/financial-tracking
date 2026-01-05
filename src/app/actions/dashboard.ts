@@ -16,13 +16,25 @@ export async function getDashboardStats(): Promise<DashboardStats> {
 
     const totalNetWorth = totalAssets - totalDebts
 
-    // Placeholder for allocation and trends (to be improved with history)
+    // Performance calculations (only for assets with cost basis)
+    const assetsWithCostBasis = assets.filter(a => a.cost_basis != null && a.type !== 'debt')
+    const assetsWithoutCostBasis = assets.filter(a => a.buy_price == null && a.type !== 'debt').length
+
+    const totalInvested = assetsWithCostBasis.reduce((acc, curr) => acc + (curr.cost_basis || 0), 0)
+    const totalMarketValue = assetsWithCostBasis.reduce((acc, curr) => acc + (curr.market_value || 0), 0)
+    const totalPnlValue = totalMarketValue - totalInvested
+    const totalPnlPercent = totalInvested > 0 ? (totalPnlValue / totalInvested) * 100 : 0
+
     return {
         totalNetWorth,
         totalAssets,
         totalDebts,
         changeValue: 0,
         changePercentage: 0,
+        totalInvested,
+        totalPnlValue,
+        totalPnlPercent,
+        assetsWithoutCostBasis,
         allocation: [
             { name: "Cash", value: assets.filter(a => a.type === 'cash').reduce((acc, curr: any) => acc + curr.current_value, 0), color: "#ffffff" },
             { name: "Stocks", value: assets.filter(a => a.type === 'stock').reduce((acc, curr: any) => acc + curr.current_value, 0), color: "#a1a1aa" },
@@ -38,3 +50,4 @@ export async function getDashboardStats(): Promise<DashboardStats> {
             }))
     }
 }
+

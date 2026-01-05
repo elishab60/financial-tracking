@@ -18,7 +18,7 @@ import {
     SelectTrigger,
     SelectValue
 } from "@/components/ui/select"
-import { Search, TrendingUp, TrendingDown, Target, Sparkles, Loader2 } from "lucide-react"
+import { Search, TrendingUp, TrendingDown, Target, Sparkles, Loader2, Calendar, DollarSign } from "lucide-react"
 
 import { updateAsset } from "@/app/actions/assets"
 import { toast } from "sonner"
@@ -39,6 +39,8 @@ export function EditAssetDialog({ asset, open, onOpenChange }: EditAssetDialogPr
     const [quote, setQuote] = useState<any>(null)
     const [showResults, setShowResults] = useState(false)
     const [searchQuery, setSearchQuery] = useState(asset.symbol || '')
+    const [historicalPrice, setHistoricalPrice] = useState<number | null>(null)
+    const [loadingHistorical, setLoadingHistorical] = useState(false)
 
     const [formData, setFormData] = useState({
         name: asset.name,
@@ -46,6 +48,9 @@ export function EditAssetDialog({ asset, open, onOpenChange }: EditAssetDialogPr
         symbol: asset.symbol || '',
         quantity: asset.quantity,
         manual_value: asset.manual_value || 0,
+        buy_price: asset.buy_price,
+        buy_date: asset.buy_date?.split('T')[0] || '',
+        fees: asset.fees || 0,
         currency: asset.currency,
         valuation_mode: asset.valuation_mode
     })
@@ -70,6 +75,9 @@ export function EditAssetDialog({ asset, open, onOpenChange }: EditAssetDialogPr
                 symbol: asset.symbol || '',
                 quantity: asset.quantity,
                 manual_value: asset.manual_value || 0,
+                buy_price: asset.buy_price,
+                buy_date: asset.buy_date?.split('T')[0] || '',
+                fees: asset.fees || 0,
                 currency: asset.currency,
                 valuation_mode: asset.valuation_mode
             })
@@ -150,6 +158,14 @@ export function EditAssetDialog({ asset, open, onOpenChange }: EditAssetDialogPr
             toast.error("Veuillez définir une valeur ou une quantité")
             return
         }
+        if (formData.fees != null && formData.fees < 0) {
+            toast.error("Les frais ne peuvent pas être négatifs")
+            return
+        }
+        if (formData.buy_price != null && formData.buy_price < 0) {
+            toast.error("Le prix d'achat ne peut pas être négatif")
+            return
+        }
 
         setLoading(true)
         try {
@@ -160,6 +176,37 @@ export function EditAssetDialog({ asset, open, onOpenChange }: EditAssetDialogPr
             toast.error(error.message || "Erreur lors de la mise à jour")
         } finally {
             setLoading(false)
+        }
+    }
+
+    const fetchHistoricalPrice = async (symbol: string, date: string) => {
+        if (!symbol || !date) return
+
+        setLoadingHistorical(true)
+        try {
+            const res = await fetch(`/api/finance/historical?symbol=${symbol}&date=${date}`)
+            if (!res.ok) {
+                setHistoricalPrice(null)
+                return
+            }
+            const data = await res.json()
+            if (data.price) {
+                setHistoricalPrice(data.price)
+            } else {
+                setHistoricalPrice(null)
+            }
+        } catch (err) {
+            console.error("Historical price error:", err)
+            setHistoricalPrice(null)
+        } finally {
+            setLoadingHistorical(false)
+        }
+    }
+
+    const handleDateChange = (newDate: string) => {
+        setFormData({ ...formData, buy_date: newDate })
+        if (formData.symbol && newDate) {
+            fetchHistoricalPrice(formData.symbol, newDate)
         }
     }
 
@@ -374,6 +421,84 @@ export function EditAssetDialog({ asset, open, onOpenChange }: EditAssetDialogPr
                                         ✍️ Manuel
                                     </button>
                                 </div>
+                            </div>
+                        </div>
+
+                        {/* Cost Basis Fields */}
+                        <div className="space-y-4 p-5 rounded-2xl bg-white/[0.02] border border-white/5">
+                            <div className="flex items-center gap-2 mb-2">
+                                <div className="w-2 h-2 rounded-full bg-gold animate-pulse" />
+                                <span className="text-[10px] font-black text-gold uppercase tracking-[0.2em]">Prix d'Achat (Optionnel)</span>
+                            </div>
+
+                            {/* Date comes first now */}
+                            <div className="space-y-2">
+                                <Label className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest ml-1 flex items-center gap-2">
+                                    <Calendar className="w-3 h-3" />
+                                    Date d'achat
+                                </Label>
+                                <Input
+                                    type="date"
+                                    value={formData.buy_date || ''}
+                                    onChange={(e) => handleDateChange(e.target.value)}
+                                    className="input-glass h-12 rounded-xl"
+                                />
+                                {loadingHistorical && (
+                                    <div className="flex items-center gap-2 text-[9px] text-zinc-500">
+                                        <Loader2 className="w-3 h-3 animate-spin" />
+                                        Recherche du prix historique...
+                                    </div>
+                                )}
+                                {historicalPrice && !loadingHistorical && !formData.buy_price && (
+                                    <button
+                                        type="button"
+                                        onClick={() => setFormData({ ...formData, buy_price: historicalPrice })}
+                                        className="text-[9px] text-emerald-400/80 hover:text-emerald-400 transition-colors font-bold uppercase tracking-widest flex items-center gap-1"
+                                    >
+                                        <DollarSign className="w-3 h-3" />
+                                        Prix du {formData.buy_date}: {historicalPrice.toFixed(2)} → Utiliser
+                                    </button>
+                                )}
+                            </div>
+
+                            {/* Buy price */}
+                            <div className="space-y-2">
+                                <Label className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest ml-1 flex items-center gap-2">
+                                    <DollarSign className="w-3 h-3" />
+                                    Prix d'achat par unité
+                                </Label>
+                                <Input
+                                    type="number"
+                                    step="0.01"
+                                    placeholder={historicalPrice?.toFixed(2) || quote?.regularMarketPrice?.toFixed(2) || "0.00"}
+                                    value={formData.buy_price ?? ''}
+                                    onChange={(e) => setFormData({ ...formData, buy_price: e.target.value ? Number(e.target.value) : undefined })}
+                                    className="input-glass h-12 rounded-xl font-bold"
+                                />
+                                <div className="flex flex-wrap gap-2">
+                                    {quote?.regularMarketPrice && !formData.buy_price && (
+                                        <button
+                                            type="button"
+                                            onClick={() => setFormData({ ...formData, buy_price: quote.regularMarketPrice })}
+                                            className="text-[9px] text-gold/70 hover:text-gold transition-colors font-bold uppercase tracking-widest"
+                                        >
+                                            → Prix actuel ({quote.regularMarketPrice.toFixed(2)})
+                                        </button>
+                                    )}
+                                </div>
+                            </div>
+
+                            {/* Fees */}
+                            <div className="space-y-2">
+                                <Label className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest ml-1">Frais de transaction (optionnel)</Label>
+                                <Input
+                                    type="number"
+                                    step="0.01"
+                                    placeholder="0.00"
+                                    value={formData.fees || ''}
+                                    onChange={(e) => setFormData({ ...formData, fees: Number(e.target.value) })}
+                                    className="input-glass h-12 rounded-xl"
+                                />
                             </div>
                         </div>
                     </div>

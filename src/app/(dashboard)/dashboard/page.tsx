@@ -2,6 +2,7 @@ import { getDashboardStats } from "@/app/actions/dashboard"
 import { KPICards } from "@/components/dashboard/kpi-cards"
 import { NetWorthChart } from "@/components/dashboard/net-worth-chart"
 import { AllocationDonut } from "@/components/dashboard/allocation-donut"
+import { PerformanceWidget } from "@/components/dashboard/performance-widget"
 import { Button } from "@/components/ui/button"
 import { RefreshCcw, Download, PlusCircle } from "lucide-react"
 import Link from "next/link"
@@ -53,6 +54,9 @@ export default async function DashboardPage() {
                 </div>
             ) : (
                 <>
+                    {/* Performance Widget - NEW */}
+                    <PerformanceWidget stats={stats} />
+
                     <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
                         <NetWorthChart />
                         <AllocationDonut data={stats.allocation} />
@@ -96,3 +100,4 @@ export default async function DashboardPage() {
         </div>
     )
 }
+

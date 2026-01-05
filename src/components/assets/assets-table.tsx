@@ -10,7 +10,7 @@ import {
     TableRow
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { Search, Filter, MoreHorizontal, Wallet, ArrowUpDown } from "lucide-react"
+import { Search, Filter, MoreHorizontal, Wallet, ArrowUpDown, TrendingUp, TrendingDown, AlertCircle } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { AssetActions } from "@/components/assets/asset-actions"
 import { Asset, AssetType } from "@/types"
@@ -21,6 +21,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
+import { cn } from "@/lib/utils"
 
 interface AssetsTableProps {
     initialAssets: Asset[]
@@ -42,6 +43,9 @@ export function AssetsTable({ initialAssets }: AssetsTableProps) {
 
     const formatCurrency = (val: number) =>
         new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(val)
+
+    const formatPercent = (val: number) =>
+        new Intl.NumberFormat('fr-FR', { style: 'percent', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(val / 100)
 
     const toggleType = (type: AssetType) => {
         setSelectedTypes(prev =>
@@ -119,9 +123,10 @@ export function AssetsTable({ initialAssets }: AssetsTableProps) {
                             <TableRow className="border-white/[0.04] hover:bg-transparent">
                                 <TableHead className="text-[10px] uppercase tracking-widest font-bold text-zinc-500 py-6 pl-8">Actif</TableHead>
                                 <TableHead className="text-[10px] uppercase tracking-widest font-bold text-zinc-500">Type</TableHead>
-                                <TableHead className="text-[10px] uppercase tracking-widest font-bold text-zinc-500">Valeur Totale</TableHead>
+                                <TableHead className="text-[10px] uppercase tracking-widest font-bold text-zinc-500">Valeur Actuelle</TableHead>
+                                <TableHead className="text-[10px] uppercase tracking-widest font-bold text-zinc-500">Prix d'Achat</TableHead>
+                                <TableHead className="text-[10px] uppercase tracking-widest font-bold text-zinc-500">P&L</TableHead>
                                 <TableHead className="text-[10px] uppercase tracking-widest font-bold text-zinc-500">Quantité</TableHead>
-                                <TableHead className="text-[10px] uppercase tracking-widest font-bold text-zinc-500">Mode</TableHead>
                                 <TableHead className="text-right pr-8"></TableHead>
                             </TableRow>
                         </TableHeader>
@@ -136,13 +141,39 @@ export function AssetsTable({ initialAssets }: AssetsTableProps) {
                                     </TableCell>
                                     <TableCell className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest capitalize">{asset.type.replace('_', ' ')}</TableCell>
                                     <TableCell className="font-bold text-white text-sm">{formatCurrency(asset.current_value || 0)}</TableCell>
-                                    <TableCell className="text-zinc-400 text-[10px] font-bold uppercase tracking-widest">
-                                        {asset.quantity} {asset.symbol || ''}
+                                    <TableCell>
+                                        {asset.buy_price != null ? (
+                                            <span className="text-sm font-bold text-zinc-400">{formatCurrency(asset.buy_price)}</span>
+                                        ) : (
+                                            <Badge variant="outline" className="bg-amber-500/10 border-amber-500/20 text-amber-400 text-[9px] font-bold uppercase tracking-widest rounded-lg px-2 py-1 flex items-center gap-1 w-fit">
+                                                <AlertCircle className="w-3 h-3" />
+                                                Non défini
+                                            </Badge>
+                                        )}
                                     </TableCell>
                                     <TableCell>
-                                        <Badge variant="outline" className="bg-white/[0.03] border-white/[0.06] text-zinc-500 text-[9px] font-bold uppercase tracking-widest rounded-lg px-2 py-1">
-                                            {asset.valuation_mode}
-                                        </Badge>
+                                        {asset.pnl_value != null && asset.pnl_percent != null ? (
+                                            <div className="flex flex-col">
+                                                <span className={cn(
+                                                    "text-sm font-bold flex items-center gap-1",
+                                                    asset.pnl_value >= 0 ? "text-emerald-400" : "text-rose-400"
+                                                )}>
+                                                    {asset.pnl_value >= 0 ? <TrendingUp className="w-3.5 h-3.5" /> : <TrendingDown className="w-3.5 h-3.5" />}
+                                                    {asset.pnl_value >= 0 ? '+' : ''}{formatCurrency(asset.pnl_value)}
+                                                </span>
+                                                <span className={cn(
+                                                    "text-[10px] font-bold",
+                                                    asset.pnl_percent >= 0 ? "text-emerald-400/70" : "text-rose-400/70"
+                                                )}>
+                                                    {asset.pnl_percent >= 0 ? '+' : ''}{formatPercent(asset.pnl_percent)}
+                                                </span>
+                                            </div>
+                                        ) : (
+                                            <span className="text-[10px] text-zinc-600 font-bold">—</span>
+                                        )}
+                                    </TableCell>
+                                    <TableCell className="text-zinc-400 text-[10px] font-bold uppercase tracking-widest">
+                                        {asset.quantity} {asset.symbol || ''}
                                     </TableCell>
                                     <TableCell className="text-right pr-8">
                                         <AssetActions asset={asset} />
@@ -156,3 +187,4 @@ export function AssetsTable({ initialAssets }: AssetsTableProps) {
         </div>
     )
 }
+

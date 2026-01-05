@@ -15,6 +15,10 @@ create table if not exists assets (
   symbol text,
   quantity decimal default 0,
   manual_value decimal,
+  buy_price decimal, -- price per unit at purchase time (cost basis)
+  buy_date timestamp with time zone, -- date of purchase
+  fees decimal default 0, -- transaction fees
+  notes text, -- user notes
   currency text default 'EUR' not null,
   valuation_mode text default 'manual' not null, -- manual, auto
   provider text,

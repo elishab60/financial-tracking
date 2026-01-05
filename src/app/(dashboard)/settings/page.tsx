@@ -2,7 +2,6 @@
 
 import { User, Shield, Bell, LogOut, ChevronRight, CreditCard, Palette, Smartphone, Globe, Wallet, Sparkles, Zap, Command } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
 import { motion } from "framer-motion"
 import { useEffect, useState } from "react"
 import { createClient } from "@/lib/supabase/client"

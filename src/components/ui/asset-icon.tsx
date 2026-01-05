@@ -17,8 +17,11 @@ export function AssetIcon({ symbol, type, name, image, id, className }: AssetIco
     const [error, setError] = useState(false)
 
     // Helper to get crypto icon
-    const getCryptoIcon = (sym: string) =>
-        `https://assets.coincap.io/assets/icons/${sym.toLowerCase()}@2x.png`
+    const getCryptoIcon = (sym: string) => {
+        // Clean symbol: ETH-EUR -> eth, BTC-USD -> btc
+        const cleaned = sym.split('-')[0].split('USD')[0].split('EUR')[0].toLowerCase()
+        return `https://assets.coincap.io/assets/icons/${cleaned}@2x.png`
+    }
 
     // Determine Image Source
     let src = null

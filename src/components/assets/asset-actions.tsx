@@ -5,13 +5,15 @@ import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
+    DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { MoreHorizontal, Pencil, Trash2, Loader2 } from "lucide-react"
+import { MoreHorizontal, Pencil, Trash2, Loader2, ShoppingCart } from "lucide-react"
 import { Asset } from "@/types"
 import { deleteAsset } from "@/app/actions/assets"
 import { toast } from "sonner"
 import { EditAssetDialog } from "./edit-asset-dialog"
+import { AddPurchaseDialog } from "./add-purchase-dialog"
 import { useRouter } from "next/navigation"
 
 interface AssetActionsProps {
@@ -22,6 +24,7 @@ export function AssetActions({ asset }: AssetActionsProps) {
     const router = useRouter()
     const [isDeleting, setIsDeleting] = useState(false)
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+    const [isAddPurchaseOpen, setIsAddPurchaseOpen] = useState(false)
 
     const handleDelete = async () => {
         const toastId = toast.loading("Suppression de l'actif...")
@@ -46,7 +49,20 @@ export function AssetActions({ asset }: AssetActionsProps) {
                         {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <MoreHorizontal className="w-4 h-4" />}
                     </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="glass-card border-white/10 backdrop-blur-3xl min-w-[160px] p-2">
+                <DropdownMenuContent align="end" className="glass-card border-white/10 backdrop-blur-3xl min-w-[180px] p-2">
+                    {/* Add Purchase - only for auto valuation mode */}
+                    {asset.valuation_mode === 'auto' && (
+                        <>
+                            <DropdownMenuItem
+                                onClick={() => setIsAddPurchaseOpen(true)}
+                                className="flex items-center gap-2 p-3 text-[11px] font-bold uppercase tracking-widest text-emerald-400 hover:text-emerald-300 hover:bg-emerald-500/10 rounded-lg cursor-pointer transition-colors"
+                            >
+                                <ShoppingCart className="w-3.5 h-3.5" />
+                                Ajouter un achat
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator className="bg-white/5" />
+                        </>
+                    )}
                     <DropdownMenuItem
                         onClick={() => setIsEditDialogOpen(true)}
                         className="flex items-center gap-2 p-3 text-[11px] font-bold uppercase tracking-widest text-zinc-400 hover:text-white hover:bg-white/5 rounded-lg cursor-pointer transition-colors"
@@ -69,6 +85,12 @@ export function AssetActions({ asset }: AssetActionsProps) {
                 asset={asset}
                 open={isEditDialogOpen}
                 onOpenChange={setIsEditDialogOpen}
+            />
+
+            <AddPurchaseDialog
+                asset={asset}
+                open={isAddPurchaseOpen}
+                onOpenChange={setIsAddPurchaseOpen}
             />
         </>
     )

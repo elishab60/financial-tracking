@@ -124,7 +124,7 @@ export function AssetsTable({ initialAssets }: AssetsTableProps) {
                                 <TableHead className="text-[10px] uppercase tracking-widest font-bold text-zinc-500 py-6 pl-8">Actif</TableHead>
                                 <TableHead className="text-[10px] uppercase tracking-widest font-bold text-zinc-500">Type</TableHead>
                                 <TableHead className="text-[10px] uppercase tracking-widest font-bold text-zinc-500">Valeur Actuelle</TableHead>
-                                <TableHead className="text-[10px] uppercase tracking-widest font-bold text-zinc-500">Prix d'Achat</TableHead>
+                                <TableHead className="text-[10px] uppercase tracking-widest font-bold text-zinc-500">PRU</TableHead>
                                 <TableHead className="text-[10px] uppercase tracking-widest font-bold text-zinc-500">P&L</TableHead>
                                 <TableHead className="text-[10px] uppercase tracking-widest font-bold text-zinc-500">Quantité</TableHead>
                                 <TableHead className="text-right pr-8"></TableHead>
@@ -142,7 +142,16 @@ export function AssetsTable({ initialAssets }: AssetsTableProps) {
                                     <TableCell className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest capitalize">{asset.type.replace('_', ' ')}</TableCell>
                                     <TableCell className="font-bold text-white text-sm">{formatCurrency(asset.current_value || 0)}</TableCell>
                                     <TableCell>
-                                        {asset.buy_price != null ? (
+                                        {asset.pru != null ? (
+                                            <div className="flex flex-col">
+                                                <span className="text-sm font-bold text-zinc-400">{formatCurrency(asset.pru)}</span>
+                                                {asset.purchase_count && asset.purchase_count > 1 && (
+                                                    <span className="text-[9px] text-zinc-600 font-bold">
+                                                        {asset.purchase_count} achats
+                                                    </span>
+                                                )}
+                                            </div>
+                                        ) : asset.buy_price != null ? (
                                             <span className="text-sm font-bold text-zinc-400">{formatCurrency(asset.buy_price)}</span>
                                         ) : (
                                             <Badge variant="outline" className="bg-amber-500/10 border-amber-500/20 text-amber-400 text-[9px] font-bold uppercase tracking-widest rounded-lg px-2 py-1 flex items-center gap-1 w-fit">

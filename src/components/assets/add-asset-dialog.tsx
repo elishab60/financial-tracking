@@ -424,83 +424,12 @@ export function AddAssetDialog() {
                             </div>
                         </div>
 
-                        {/* Cost Basis Fields - shown for auto mode */}
+                        {/* Info about adding purchases later */}
                         {formData.valuation_mode === 'auto' && (
-                            <div className="space-y-4 p-5 rounded-2xl bg-white/[0.02] border border-white/5">
-                                <div className="flex items-center gap-2 mb-2">
-                                    <div className="w-2 h-2 rounded-full bg-gold animate-pulse" />
-                                    <span className="text-[10px] font-black text-gold uppercase tracking-[0.2em]">Prix d'Achat (Optionnel)</span>
-                                </div>
-
-                                {/* Date comes first now */}
-                                <div className="space-y-2">
-                                    <Label className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest ml-1 flex items-center gap-2">
-                                        <Calendar className="w-3 h-3" />
-                                        Date d'achat
-                                    </Label>
-                                    <Input
-                                        type="date"
-                                        value={formData.buy_date || ''}
-                                        onChange={(e) => handleDateChange(e.target.value)}
-                                        className="input-glass h-12 rounded-xl"
-                                    />
-                                    {loadingHistorical && (
-                                        <div className="flex items-center gap-2 text-[9px] text-zinc-500">
-                                            <Loader2 className="w-3 h-3 animate-spin" />
-                                            Recherche du prix historique...
-                                        </div>
-                                    )}
-                                    {historicalPrice && !loadingHistorical && !formData.buy_price && (
-                                        <button
-                                            type="button"
-                                            onClick={() => setFormData({ ...formData, buy_price: historicalPrice })}
-                                            className="text-[9px] text-emerald-400/80 hover:text-emerald-400 transition-colors font-bold uppercase tracking-widest flex items-center gap-1"
-                                        >
-                                            <DollarSign className="w-3 h-3" />
-                                            Prix du {formData.buy_date}: {historicalPrice.toFixed(2)} → Utiliser
-                                        </button>
-                                    )}
-                                </div>
-
-                                {/* Buy price */}
-                                <div className="space-y-2">
-                                    <Label className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest ml-1 flex items-center gap-2">
-                                        <DollarSign className="w-3 h-3" />
-                                        Prix d'achat par unité
-                                    </Label>
-                                    <Input
-                                        type="number"
-                                        step="0.01"
-                                        placeholder={historicalPrice?.toFixed(2) || quote?.regularMarketPrice?.toFixed(2) || "0.00"}
-                                        value={formData.buy_price ?? ''}
-                                        onChange={(e) => setFormData({ ...formData, buy_price: e.target.value ? Number(e.target.value) : undefined })}
-                                        className="input-glass h-12 rounded-xl font-bold"
-                                    />
-                                    <div className="flex flex-wrap gap-2">
-                                        {quote?.regularMarketPrice && !formData.buy_price && (
-                                            <button
-                                                type="button"
-                                                onClick={() => setFormData({ ...formData, buy_price: quote.regularMarketPrice })}
-                                                className="text-[9px] text-gold/70 hover:text-gold transition-colors font-bold uppercase tracking-widest"
-                                            >
-                                                → Prix actuel ({quote.regularMarketPrice.toFixed(2)})
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
-
-                                {/* Fees */}
-                                <div className="space-y-2">
-                                    <Label className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest ml-1">Frais de transaction (optionnel)</Label>
-                                    <Input
-                                        type="number"
-                                        step="0.01"
-                                        placeholder="0.00"
-                                        value={formData.fees || ''}
-                                        onChange={(e) => setFormData({ ...formData, fees: Number(e.target.value) })}
-                                        className="input-glass h-12 rounded-xl"
-                                    />
-                                </div>
+                            <div className="p-4 rounded-2xl bg-emerald-500/5 border border-emerald-500/20">
+                                <p className="text-[10px] text-emerald-400/80 font-bold uppercase tracking-widest">
+                                    💡 Après l'ajout, utilisez "Ajouter un achat" pour enregistrer vos achats et calculer votre PRU
+                                </p>
                             </div>
                         )}
                     </div>

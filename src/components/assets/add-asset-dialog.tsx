@@ -197,6 +197,14 @@ export function AddAssetDialog() {
         }
     }
 
+    // Sync historical price to form
+    useEffect(() => {
+        if (historicalPrice !== null) {
+            setFormData(prev => ({ ...prev, buy_price: historicalPrice }))
+            toast.success("Prix historique récupéré !")
+        }
+    }, [historicalPrice])
+
     const handleDateChange = (newDate: string) => {
         setFormData({ ...formData, buy_date: newDate })
         if (formData.symbol && newDate) {
@@ -424,14 +432,32 @@ export function AddAssetDialog() {
                             </div>
                         </div>
 
-                        {/* Info about adding purchases later */}
-                        {formData.valuation_mode === 'auto' && (
-                            <div className="p-4 rounded-2xl bg-emerald-500/5 border border-emerald-500/20">
-                                <p className="text-[10px] text-emerald-400/80 font-bold uppercase tracking-widest">
-                                    💡 Après l'ajout, utilisez "Ajouter un achat" pour enregistrer vos achats et calculer votre PRU
-                                </p>
+                        {/* Purchase Price Input */}
+                        <div className="grid grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                                <Label className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest ml-1">
+                                    Prix d'Achat (PRU)
+                                </Label>
+                                <Input
+                                    type="number"
+                                    placeholder="0.00"
+                                    value={formData.buy_price || ''}
+                                    onChange={(e) => setFormData({ ...formData, buy_price: e.target.value ? Number(e.target.value) : undefined })}
+                                    className="input-glass h-14 font-bold rounded-2xl border-white/10 focus:border-gold/50"
+                                />
                             </div>
-                        )}
+                            <div className="space-y-2">
+                                <Label className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest ml-1">
+                                    Date d'achat
+                                </Label>
+                                <Input
+                                    type="date"
+                                    value={formData.buy_date}
+                                    onChange={(e) => handleDateChange(e.target.value)}
+                                    className="input-glass h-14 font-bold rounded-2xl border-white/10 focus:border-gold/50 opacity-80"
+                                />
+                            </div>
+                        </div>
                     </div>
                 </div>
 

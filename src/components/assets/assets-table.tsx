@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
 import { AssetIcon } from "@/components/ui/asset-icon"
+import { cn } from "@/lib/utils"
 
 interface AssetsTableProps {
     initialAssets: Asset[]
@@ -119,46 +120,74 @@ export function AssetsTable({ initialAssets }: AssetsTableProps) {
                         <TableHeader className="bg-white/[0.01]">
                             <TableRow className="border-white/[0.04] hover:bg-transparent">
                                 <TableHead className="text-[10px] uppercase tracking-widest font-bold text-zinc-500 py-6 pl-8">Actif</TableHead>
-                                <TableHead className="text-[10px] uppercase tracking-widest font-bold text-zinc-500">Type</TableHead>
-                                <TableHead className="text-[10px] uppercase tracking-widest font-bold text-zinc-500">Valeur Totale</TableHead>
-                                <TableHead className="text-[10px] uppercase tracking-widest font-bold text-zinc-500">Quantité</TableHead>
-                                <TableHead className="text-[10px] uppercase tracking-widest font-bold text-zinc-500">Mode</TableHead>
+                                <TableHead className="text-[10px] uppercase tracking-widest font-bold text-zinc-500 text-right">Prix</TableHead>
+                                <TableHead className="text-[10px] uppercase tracking-widest font-bold text-zinc-500 text-right">PRU</TableHead>
+                                <TableHead className="text-[10px] uppercase tracking-widest font-bold text-zinc-500 text-right">Performance</TableHead>
+                                <TableHead className="text-[10px] uppercase tracking-widest font-bold text-zinc-500 text-right">Valeur</TableHead>
                                 <TableHead className="text-right pr-8"></TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
-                            {filteredAssets.map((asset) => (
-                                <TableRow key={asset.id} className="border-white/[0.04] hover:bg-white/[0.02] transition-colors group">
-                                    <TableCell className="py-6 pl-8">
-                                        <div className="flex items-center gap-4">
-                                            <AssetIcon
-                                                symbol={asset.symbol}
-                                                type={asset.type}
-                                                name={asset.name}
-                                                image={asset.image}
-                                                id={asset.id}
-                                            />
-                                            <div className="flex flex-col">
-                                                <span className="font-bold text-white text-sm">{asset.name}</span>
-                                                {asset.symbol && <span className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest mt-1">{asset.symbol}</span>}
+                            {filteredAssets.map((asset) => {
+                                const isPositive = (asset.pnl_value || 0) >= 0
+                                return (
+                                    <TableRow key={asset.id} className="border-white/[0.04] hover:bg-white/[0.02] transition-colors group">
+                                        <TableCell className="py-6 pl-8">
+                                            <div className="flex items-center gap-4">
+                                                <AssetIcon
+                                                    symbol={asset.symbol}
+                                                    type={asset.type}
+                                                    name={asset.name}
+                                                    image={asset.image}
+                                                    id={asset.id}
+                                                />
+                                                <div className="flex flex-col">
+                                                    <span className="font-bold text-white text-sm">{asset.name}</span>
+                                                    <div className="flex items-center gap-2 mt-1">
+                                                        {asset.symbol && <span className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest">{asset.symbol}</span>}
+                                                        <span className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest">• {asset.quantity} {asset.symbol}</span>
+                                                    </div>
+                                                </div>
                                             </div>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest capitalize">{asset.type.replace('_', ' ')}</TableCell>
-                                    <TableCell className="font-bold text-white text-sm">{formatCurrency(asset.current_value || 0)}</TableCell>
-                                    <TableCell className="text-zinc-400 text-[10px] font-bold uppercase tracking-widest">
-                                        {asset.quantity} {asset.symbol || ''}
-                                    </TableCell>
-                                    <TableCell>
-                                        <Badge variant="outline" className="bg-white/[0.03] border-white/[0.06] text-zinc-500 text-[9px] font-bold uppercase tracking-widest rounded-lg px-2 py-1">
-                                            {asset.valuation_mode}
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell className="text-right pr-8">
-                                        <AssetActions asset={asset} />
-                                    </TableCell>
-                                </TableRow>
-                            ))}
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                            <div className="font-bold text-white text-sm">
+                                                {asset.current_price ? formatCurrency(asset.current_price) : '-'}
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                            <div className="font-bold text-zinc-400 text-sm">
+                                                {asset.buy_price ? formatCurrency(asset.buy_price) : '-'}
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                            <div className="flex flex-col items-end">
+                                                {asset.pnl_value != null ? (
+                                                    <>
+                                                        <span className={cn("font-bold text-sm", isPositive ? "text-emerald-500" : "text-rose-500")}>
+                                                            {isPositive ? "+" : ""}{formatCurrency(asset.pnl_value)}
+                                                        </span>
+                                                        <span className={cn("text-[10px] font-black uppercase tracking-widest", isPositive ? "text-emerald-500/60" : "text-rose-500/60")}>
+                                                            {isPositive ? "+" : ""}{(asset.pnl_percent || 0).toFixed(2)}%
+                                                        </span>
+                                                    </>
+                                                ) : (
+                                                    <span className="text-zinc-600 text-xs">-</span>
+                                                )}
+                                            </div>
+                                        </TableCell>
+                                        <TableCell className="text-right">
+                                            <div className="font-bold text-white text-sm">{formatCurrency(asset.current_value || 0)}</div>
+                                            <Badge variant="outline" className="bg-white/[0.03] border-white/[0.06] text-zinc-500 text-[9px] font-bold uppercase tracking-widest rounded-lg px-2 py-0.5 mt-1">
+                                                {asset.valuation_mode}
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell className="text-right pr-8">
+                                            <AssetActions asset={asset} />
+                                        </TableCell>
+                                    </TableRow>
+                                )
+                            })}
                         </TableBody>
                     </Table>
                 </div>

@@ -17,6 +17,14 @@ export interface Asset {
   updated_at: string;
   current_value?: number;
   image?: string;
+  buy_price?: number;
+  buy_date?: string;
+  fees?: number;
+  notes?: string;
+  current_price?: number;
+  pnl_value?: number;
+  pnl_percent?: number;
+  total_invested?: number;
 }
 
 export interface AssetValuation {

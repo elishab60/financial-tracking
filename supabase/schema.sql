@@ -15,15 +15,28 @@ create table if not exists assets (
   symbol text,
   quantity decimal default 0,
   manual_value decimal,
-  buy_price decimal, -- price per unit at purchase time (cost basis)
-  buy_date timestamp with time zone, -- date of purchase
-  fees decimal default 0, -- transaction fees
+  buy_price decimal, -- DEPRECATED: use asset_purchases instead
+  buy_date timestamp with time zone, -- DEPRECATED: use asset_purchases instead
+  fees decimal default 0, -- DEPRECATED: use asset_purchases instead
   notes text, -- user notes
   currency text default 'EUR' not null,
   valuation_mode text default 'manual' not null, -- manual, auto
   provider text,
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   updated_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- Asset Purchases (for PRU / average cost tracking)
+create table if not exists asset_purchases (
+  id uuid default gen_random_uuid() primary key,
+  asset_id uuid references assets on delete cascade not null,
+  user_id uuid references auth.users on delete cascade not null,
+  quantity decimal not null,
+  unit_price decimal not null,
+  fees decimal default 0,
+  purchase_date timestamp with time zone,
+  notes text,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
 -- Asset Valuations (History)

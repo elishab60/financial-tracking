@@ -18,13 +18,16 @@ import {
     SelectTrigger,
     SelectValue
 } from "@/components/ui/select"
-import { Search, TrendingUp, TrendingDown, Target, Sparkles, Loader2, Calendar, DollarSign } from "lucide-react"
+import { Search, TrendingUp, TrendingDown, Target, Sparkles, Loader2, Calendar, DollarSign, ShoppingCart, Trash2, Pencil } from "lucide-react"
 
 import { updateAsset } from "@/app/actions/assets"
+import { deletePurchase } from "@/app/actions/purchases"
 import { toast } from "sonner"
-import { Asset, AssetType } from "@/types"
+import { Asset, AssetType, AssetPurchase } from "@/types"
 import { motion, AnimatePresence } from "framer-motion"
 import { cn } from "@/lib/utils"
+import { AddPurchaseDialog } from "./add-purchase-dialog"
+import { EditPurchaseDialog } from "./edit-purchase-dialog"
 
 interface EditAssetDialogProps {
     asset: Asset
@@ -41,6 +44,9 @@ export function EditAssetDialog({ asset, open, onOpenChange }: EditAssetDialogPr
     const [searchQuery, setSearchQuery] = useState(asset.symbol || '')
     const [historicalPrice, setHistoricalPrice] = useState<number | null>(null)
     const [loadingHistorical, setLoadingHistorical] = useState(false)
+    const [isAddPurchaseOpen, setIsAddPurchaseOpen] = useState(false)
+    const [deletingPurchaseId, setDeletingPurchaseId] = useState<string | null>(null)
+    const [editingPurchase, setEditingPurchase] = useState<AssetPurchase | null>(null)
 
     const [formData, setFormData] = useState({
         name: asset.name,
@@ -424,85 +430,114 @@ export function EditAssetDialog({ asset, open, onOpenChange }: EditAssetDialogPr
                             </div>
                         </div>
 
-                        {/* Cost Basis Fields */}
-                        <div className="space-y-4 p-5 rounded-2xl bg-white/[0.02] border border-white/5">
-                            <div className="flex items-center gap-2 mb-2">
-                                <div className="w-2 h-2 rounded-full bg-gold animate-pulse" />
-                                <span className="text-[10px] font-black text-gold uppercase tracking-[0.2em]">Prix d'Achat (Optionnel)</span>
-                            </div>
-
-                            {/* Date comes first now */}
-                            <div className="space-y-2">
-                                <Label className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest ml-1 flex items-center gap-2">
-                                    <Calendar className="w-3 h-3" />
-                                    Date d'achat
-                                </Label>
-                                <Input
-                                    type="date"
-                                    value={formData.buy_date || ''}
-                                    onChange={(e) => handleDateChange(e.target.value)}
-                                    className="input-glass h-12 rounded-xl"
-                                />
-                                {loadingHistorical && (
-                                    <div className="flex items-center gap-2 text-[9px] text-zinc-500">
-                                        <Loader2 className="w-3 h-3 animate-spin" />
-                                        Recherche du prix historique...
+                        {/* Purchases List - for auto mode assets */}
+                        {asset.valuation_mode === 'auto' && (
+                            <div className="space-y-4 p-5 rounded-2xl bg-white/[0.02] border border-white/5">
+                                <div className="flex items-center justify-between mb-2">
+                                    <div className="flex items-center gap-2">
+                                        <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                                        <span className="text-[10px] font-black text-emerald-400 uppercase tracking-[0.2em]">Historique des Achats</span>
                                     </div>
-                                )}
-                                {historicalPrice && !loadingHistorical && !formData.buy_price && (
                                     <button
                                         type="button"
-                                        onClick={() => setFormData({ ...formData, buy_price: historicalPrice })}
-                                        className="text-[9px] text-emerald-400/80 hover:text-emerald-400 transition-colors font-bold uppercase tracking-widest flex items-center gap-1"
+                                        onClick={() => setIsAddPurchaseOpen(true)}
+                                        className="text-[9px] font-black text-emerald-400 uppercase tracking-widest hover:text-emerald-300 transition-colors flex items-center gap-1"
                                     >
-                                        <DollarSign className="w-3 h-3" />
-                                        Prix du {formData.buy_date}: {historicalPrice.toFixed(2)} → Utiliser
+                                        <ShoppingCart className="w-3 h-3" />
+                                        + Ajouter
                                     </button>
+                                </div>
+
+                                {/* PRU Summary */}
+                                {asset.pru != null && (
+                                    <div className="p-3 rounded-xl bg-emerald-500/5 border border-emerald-500/20 flex justify-between items-center">
+                                        <span className="text-[9px] font-black text-zinc-500 uppercase tracking-widest">PRU (Prix Moyen)</span>
+                                        <span className="text-sm font-black text-emerald-400">
+                                            {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: asset.currency }).format(asset.pru)}
+                                        </span>
+                                    </div>
+                                )}
+
+                                {/* Purchases List */}
+                                {asset.purchases && asset.purchases.length > 0 ? (
+                                    <div className="space-y-2 max-h-48 overflow-y-auto">
+                                        {asset.purchases.map((purchase: AssetPurchase) => (
+                                            <div key={purchase.id} className="p-3 rounded-xl bg-white/[0.02] border border-white/5 flex justify-between items-center group hover:border-white/10 transition-colors">
+                                                <div className="flex flex-col">
+                                                    <span className="text-xs font-bold text-white">
+                                                        {purchase.quantity} × {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: asset.currency }).format(purchase.unit_price)}
+                                                    </span>
+                                                    <span className="text-[9px] text-zinc-500 font-bold">
+                                                        {purchase.purchase_date ? new Date(purchase.purchase_date).toLocaleDateString('fr-FR') : 'Date non définie'}
+                                                        {purchase.fees > 0 && ` • Frais: ${new Intl.NumberFormat('fr-FR', { style: 'currency', currency: asset.currency }).format(purchase.fees)}`}
+                                                    </span>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-xs font-bold text-zinc-400">
+                                                        {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: asset.currency }).format(purchase.total_cost || (purchase.quantity * purchase.unit_price + (purchase.fees || 0)))}
+                                                    </span>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => setEditingPurchase(purchase)}
+                                                        className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg hover:bg-gold/10 text-zinc-500 hover:text-gold transition-all"
+                                                    >
+                                                        <Pencil className="w-3.5 h-3.5" />
+                                                    </button>
+                                                    <button
+                                                        type="button"
+                                                        disabled={deletingPurchaseId === purchase.id}
+                                                        onClick={async () => {
+                                                            setDeletingPurchaseId(purchase.id)
+                                                            try {
+                                                                await deletePurchase(purchase.id)
+                                                                toast.success("Achat supprimé")
+                                                            } catch (err: any) {
+                                                                toast.error(err.message || "Erreur lors de la suppression")
+                                                            } finally {
+                                                                setDeletingPurchaseId(null)
+                                                            }
+                                                        }}
+                                                        className="opacity-0 group-hover:opacity-100 p-1.5 rounded-lg hover:bg-rose-500/10 text-zinc-500 hover:text-rose-400 transition-all"
+                                                    >
+                                                        {deletingPurchaseId === purchase.id ? (
+                                                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                                        ) : (
+                                                            <Trash2 className="w-3.5 h-3.5" />
+                                                        )}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <div className="p-4 text-center">
+                                        <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-widest">
+                                            Aucun achat enregistré
+                                        </p>
+                                        <p className="text-[9px] text-zinc-600 mt-1">
+                                            Cliquez sur "+ Ajouter" pour enregistrer votre premier achat
+                                        </p>
+                                    </div>
                                 )}
                             </div>
-
-                            {/* Buy price */}
-                            <div className="space-y-2">
-                                <Label className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest ml-1 flex items-center gap-2">
-                                    <DollarSign className="w-3 h-3" />
-                                    Prix d'achat par unité
-                                </Label>
-                                <Input
-                                    type="number"
-                                    step="0.01"
-                                    placeholder={historicalPrice?.toFixed(2) || quote?.regularMarketPrice?.toFixed(2) || "0.00"}
-                                    value={formData.buy_price ?? ''}
-                                    onChange={(e) => setFormData({ ...formData, buy_price: e.target.value ? Number(e.target.value) : undefined })}
-                                    className="input-glass h-12 rounded-xl font-bold"
-                                />
-                                <div className="flex flex-wrap gap-2">
-                                    {quote?.regularMarketPrice && !formData.buy_price && (
-                                        <button
-                                            type="button"
-                                            onClick={() => setFormData({ ...formData, buy_price: quote.regularMarketPrice })}
-                                            className="text-[9px] text-gold/70 hover:text-gold transition-colors font-bold uppercase tracking-widest"
-                                        >
-                                            → Prix actuel ({quote.regularMarketPrice.toFixed(2)})
-                                        </button>
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* Fees */}
-                            <div className="space-y-2">
-                                <Label className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest ml-1">Frais de transaction (optionnel)</Label>
-                                <Input
-                                    type="number"
-                                    step="0.01"
-                                    placeholder="0.00"
-                                    value={formData.fees || ''}
-                                    onChange={(e) => setFormData({ ...formData, fees: Number(e.target.value) })}
-                                    className="input-glass h-12 rounded-xl"
-                                />
-                            </div>
-                        </div>
+                        )}
                     </div>
                 </div>
+
+                <AddPurchaseDialog
+                    asset={asset}
+                    open={isAddPurchaseOpen}
+                    onOpenChange={setIsAddPurchaseOpen}
+                />
+
+                {editingPurchase && (
+                    <EditPurchaseDialog
+                        asset={asset}
+                        purchase={editingPurchase}
+                        open={!!editingPurchase}
+                        onOpenChange={(open) => !open && setEditingPurchase(null)}
+                    />
+                )}
 
                 <div className="p-8 bg-white/[0.02] border-t border-white/5 flex gap-4">
                     <Button

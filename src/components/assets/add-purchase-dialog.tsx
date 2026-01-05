@@ -117,7 +117,10 @@ export function AddPurchaseDialog({ asset, open, onOpenChange }: AddPurchaseDial
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-md bg-[#0a0a0a] border border-white/10 shadow-2xl rounded-3xl overflow-hidden p-0">
+            <DialogContent
+                onOpenAutoFocus={(e) => e.preventDefault()}
+                className="max-w-md bg-[#0a0a0a] border border-white/10 shadow-2xl rounded-3xl overflow-hidden p-0"
+            >
                 <DialogHeader className="p-8 pb-4 bg-gradient-to-b from-white/[0.03] to-transparent">
                     <div className="flex items-center gap-4">
                         <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">

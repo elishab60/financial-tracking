@@ -18,7 +18,7 @@ export async function getDashboardStats(): Promise<DashboardStats> {
 
     // Performance calculations (only for assets with cost basis)
     const assetsWithCostBasis = assets.filter(a => a.cost_basis != null && a.type !== 'debt')
-    const assetsWithoutCostBasis = assets.filter(a => a.buy_price == null && a.type !== 'debt').length
+    const assetsWithoutCostBasis = assets.filter(a => a.cost_basis == null && a.type !== 'debt').length
 
     const totalInvested = assetsWithCostBasis.reduce((acc, curr) => acc + (curr.cost_basis || 0), 0)
     const totalMarketValue = assetsWithCostBasis.reduce((acc, curr) => acc + (curr.market_value || 0), 0)

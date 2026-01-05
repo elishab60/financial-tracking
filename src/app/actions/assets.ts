@@ -77,7 +77,11 @@ export async function getAssets() {
             total_invested: totalInvested > 0 ? totalInvested : undefined,
             pnl_value: pnlValue,
             pnl_percent: pnlPercent,
+            cost_basis: totalInvested > 0 ? totalInvested : undefined,
             purchases: asset.asset_purchases || [],
+            last_purchase_date: purchases.length > 0
+                ? purchases.reduce((latest, p) => (new Date(p.purchase_date || 0) > new Date(latest.purchase_date || 0) ? p : latest)).purchase_date
+                : asset.buy_date,
         } as Asset
     }))
 

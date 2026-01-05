@@ -32,6 +32,7 @@ export interface Asset {
   pru?: number; // Unit Cost Average
   cost_basis?: number; // Total Invested
   market_value?: number; // Total Value
+  last_purchase_date?: string | null;
 }
 
 export interface AssetPurchase {
@@ -91,6 +92,10 @@ export interface DashboardStats {
   totalDebts: number;
   changeValue: number;
   changePercentage: number;
+  totalInvested: number;
+  totalPnlValue: number;
+  totalPnlPercent: number;
+  assetsWithoutCostBasis: number;
   allocation: {
     name: string;
     value: number;

@@ -122,7 +122,7 @@ export function AssetsTable({ initialAssets }: AssetsTableProps) {
                                 <TableHead className="text-[10px] uppercase tracking-widest font-bold text-zinc-500 py-6 pl-8">Actif</TableHead>
                                 <TableHead className="text-[10px] uppercase tracking-widest font-bold text-zinc-500 text-right">Quantité</TableHead>
                                 <TableHead className="text-[10px] uppercase tracking-widest font-bold text-zinc-500 text-right">Prix</TableHead>
-                                <TableHead className="text-[10px] uppercase tracking-widest font-bold text-zinc-500 text-right">Prix d'Achat</TableHead>
+                                <TableHead className="text-[10px] uppercase tracking-widest font-bold text-zinc-500 text-right">Prix d'Achat Moyen</TableHead>
                                 <TableHead className="text-[10px] uppercase tracking-widest font-bold text-zinc-500 text-right">Performance</TableHead>
                                 <TableHead className="text-[10px] uppercase tracking-widest font-bold text-zinc-500 text-right">Valeur</TableHead>
                                 <TableHead className="text-right pr-8"></TableHead>
@@ -131,6 +131,8 @@ export function AssetsTable({ initialAssets }: AssetsTableProps) {
                         <TableBody>
                             {filteredAssets.map((asset) => {
                                 const isPositive = (asset.pnl_value || 0) >= 0
+                                const displayPrice = asset.pru ?? asset.buy_price
+                                const displayDate = asset.last_purchase_date ?? asset.buy_date
                                 return (
                                     <TableRow key={asset.id} className="border-white/[0.04] hover:bg-white/[0.02] transition-colors group">
                                         <TableCell className="py-6 pl-8">
@@ -163,11 +165,11 @@ export function AssetsTable({ initialAssets }: AssetsTableProps) {
                                         <TableCell className="text-right">
                                             <div className="flex flex-col items-end">
                                                 <div className="font-bold text-zinc-400 text-sm">
-                                                    {asset.buy_price ? formatCurrency(asset.buy_price) : '-'}
+                                                    {displayPrice ? formatCurrency(displayPrice) : '-'}
                                                 </div>
-                                                {asset.buy_date && (
+                                                {displayDate && (
                                                     <div className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest mt-0.5">
-                                                        {new Date(asset.buy_date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: '2-digit' })}
+                                                        {new Date(displayDate).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: '2-digit' })}
                                                     </div>
                                                 )}
                                             </div>

@@ -100,6 +100,14 @@ export function EditAssetDialog({ asset, open, onOpenChange }: EditAssetDialogPr
     useEffect(() => {
         if (!searchQuery || searchQuery.length < 2) {
             setSearchResults([])
+            setShowResults(false)
+            return
+        }
+
+        // Optimization: Don't auto-search for the current symbol (initial state)
+        if (searchQuery === asset.symbol) {
+            setSearchResults([])
+            setShowResults(false)
             return
         }
 
@@ -234,7 +242,10 @@ export function EditAssetDialog({ asset, open, onOpenChange }: EditAssetDialogPr
     return (
         <>
             <Dialog open={open} onOpenChange={onOpenChange}>
-                <DialogContent className="sm:max-w-[500px] glass-card border-white/10 p-0 overflow-hidden">
+                <DialogContent
+                    onOpenAutoFocus={(e) => e.preventDefault()}
+                    className="sm:max-w-[500px] glass-card border-white/10 p-0 overflow-hidden"
+                >
                     <div className="p-8 space-y-8">
                         <DialogHeader>
                             <DialogTitle className="text-3xl font-black text-premium flex items-center gap-3">

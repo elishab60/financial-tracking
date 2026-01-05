@@ -16,6 +16,7 @@ export interface Asset {
   created_at: string;
   updated_at: string;
   current_value?: number;
+  image?: string;
 }
 
 export interface AssetValuation {

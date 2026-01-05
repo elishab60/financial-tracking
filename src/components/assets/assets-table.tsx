@@ -21,6 +21,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
+import { AssetIcon } from "@/components/ui/asset-icon"
 
 interface AssetsTableProps {
     initialAssets: Asset[]
@@ -129,9 +130,18 @@ export function AssetsTable({ initialAssets }: AssetsTableProps) {
                             {filteredAssets.map((asset) => (
                                 <TableRow key={asset.id} className="border-white/[0.04] hover:bg-white/[0.02] transition-colors group">
                                     <TableCell className="py-6 pl-8">
-                                        <div className="flex flex-col">
-                                            <span className="font-bold text-white text-sm">{asset.name}</span>
-                                            {asset.symbol && <span className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest mt-1">{asset.symbol}</span>}
+                                        <div className="flex items-center gap-4">
+                                            <AssetIcon
+                                                symbol={asset.symbol}
+                                                type={asset.type}
+                                                name={asset.name}
+                                                image={asset.image}
+                                                id={asset.id}
+                                            />
+                                            <div className="flex flex-col">
+                                                <span className="font-bold text-white text-sm">{asset.name}</span>
+                                                {asset.symbol && <span className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest mt-1">{asset.symbol}</span>}
+                                            </div>
                                         </div>
                                     </TableCell>
                                     <TableCell className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest capitalize">{asset.type.replace('_', ' ')}</TableCell>

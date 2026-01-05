@@ -76,7 +76,7 @@ export function AddAssetDialog() {
                 const res = await fetch(`/api/finance/search?q=${searchQuery}`)
                 if (!res.ok) return
                 const data = await res.json()
-                setSearchResults(data.quotes || [])
+                setSearchResults(data.results || [])
             } catch (err) {
                 console.error("Search error:", err)
             } finally {
@@ -432,32 +432,64 @@ export function AddAssetDialog() {
                             </div>
                         </div>
 
-                        {/* Purchase Price Input */}
-                        <div className="grid grid-cols-2 gap-6">
-                            <div className="space-y-2">
-                                <Label className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest ml-1">
-                                    Prix d'Achat (PRU)
-                                </Label>
-                                <Input
-                                    type="number"
-                                    placeholder="0.00"
-                                    value={formData.buy_price || ''}
-                                    onChange={(e) => setFormData({ ...formData, buy_price: e.target.value ? Number(e.target.value) : undefined })}
-                                    className="input-glass h-14 font-bold rounded-2xl border-white/10 focus:border-gold/50"
-                                />
+                        {/* Info about adding purchases later */}
+                        {/* Initial Purchase Details - Only for Auto Mode */}
+                        {formData.valuation_mode === 'auto' && (
+                            <div className="space-y-4 pt-4 border-t border-white/5">
+                                <div className="flex items-center justify-between">
+                                    <Label className="text-zinc-400 text-[10px] uppercase tracking-[0.2em] font-bold flex items-center gap-2">
+                                        <DollarSign className="w-3.5 h-3.5 text-gold" />
+                                        Détails Achat Initial (Optionnel)
+                                    </Label>
+                                    {historicalPrice && (
+                                        <button
+                                            type="button"
+                                            onClick={() => setFormData({ ...formData, buy_price: historicalPrice })}
+                                            className="text-[9px] text-gold hover:underline font-bold"
+                                        >
+                                            Prix historique suggéré: {historicalPrice.toFixed(2)}€
+                                        </button>
+                                    )}
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <Label className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest ml-1">Date</Label>
+                                        <div className="relative group">
+                                            <Input
+                                                type="date"
+                                                value={formData.buy_date}
+                                                onChange={(e) => handleDateChange(e.target.value)}
+                                                className="input-glass h-12 rounded-xl pr-10"
+                                            />
+                                            <Calendar className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-500 group-hover:text-gold transition-colors pointer-events-none" />
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <Label className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest ml-1">Prix Unitaire</Label>
+                                        <div className="relative">
+                                            <Input
+                                                type="number"
+                                                placeholder={loadingHistorical ? "..." : (historicalPrice ? `${historicalPrice}` : "0.00")}
+                                                value={formData.buy_price || ''}
+                                                onChange={(e) => setFormData({ ...formData, buy_price: Number(e.target.value) })}
+                                                className="input-glass h-12 rounded-xl"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest ml-1">Frais de transaction</Label>
+                                    <Input
+                                        type="number"
+                                        placeholder="0.00"
+                                        value={formData.fees || ''}
+                                        onChange={(e) => setFormData({ ...formData, fees: Number(e.target.value) })}
+                                        className="input-glass h-12 rounded-xl"
+                                    />
+                                </div>
                             </div>
-                            <div className="space-y-2">
-                                <Label className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest ml-1">
-                                    Date d'achat
-                                </Label>
-                                <Input
-                                    type="date"
-                                    value={formData.buy_date}
-                                    onChange={(e) => handleDateChange(e.target.value)}
-                                    className="input-glass h-14 font-bold rounded-2xl border-white/10 focus:border-gold/50 opacity-80"
-                                />
-                            </div>
-                        </div>
+                        )}
                     </div>
                 </div>
 

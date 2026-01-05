@@ -139,3 +139,6 @@ create policy "Anyone can read price cache" on price_cache for select using (tru
 
 alter table integrations enable row level security;
 create policy "Users can manage their own integrations" on integrations for all using (auth.uid() = user_id);
+
+alter table asset_purchases enable row level security;
+create policy "Users can manage their own purchases" on asset_purchases for all using (auth.uid() = user_id);

@@ -17,15 +17,36 @@ export interface Asset {
   updated_at: string;
   current_value?: number;
   image?: string;
-  buy_price?: number;
-  buy_date?: string;
-  fees?: number;
+  buy_price?: number; // Legacy or Initial
+  buy_date?: string; // Legacy or Initial
+  fees?: number; // Legacy or Initial
   notes?: string;
   current_price?: number;
   pnl_value?: number;
   pnl_percent?: number;
   total_invested?: number;
+
+  // New Purchase History Fields
+  purchases?: AssetPurchase[];
+  purchase_count?: number;
+  pru?: number; // Unit Cost Average
+  cost_basis?: number; // Total Invested
+  market_value?: number; // Total Value
 }
+
+export interface AssetPurchase {
+  id: string;
+  asset_id: string;
+  user_id: string;
+  quantity: number;
+  unit_price: number;
+  fees: number;
+  purchase_date: string | null;
+  notes: string | null;
+  created_at: string;
+  total_cost?: number; // Computed
+}
+
 
 export interface AssetValuation {
   id: string;

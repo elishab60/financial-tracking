@@ -14,7 +14,7 @@ export async function getAssets() {
     // Fetch assets directly
     const { data: assets, error } = await supabase
         .from("assets")
-        .select('*')
+        .select('*, asset_purchases(*)')
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
 
@@ -22,20 +22,41 @@ export async function getAssets() {
 
     // Enhance assets with real-time prices and P&L calculations
     const enhancedAssets = await Promise.all((assets || []).map(async (asset: any) => {
+        // Calculate PRU and totals from purchases first
+        const purchases: AssetPurchase[] = asset.asset_purchases || []
+        let totalInvested = 0
+        let totalQuantityFromPurchases = 0
+
+        for (const p of purchases) {
+            totalQuantityFromPurchases += p.quantity
+            totalInvested += (p.quantity * p.unit_price) + (p.fees || 0)
+        }
+
+        // Fallback to legacy buy_price if no purchases exist
+        if (purchases.length === 0 && asset.buy_price != null && asset.quantity > 0) {
+            totalInvested = (asset.quantity * asset.buy_price) + (asset.fees || 0)
+            totalQuantityFromPurchases = asset.quantity
+        }
+
+        const pru = totalQuantityFromPurchases > 0 ? totalInvested / totalQuantityFromPurchases : undefined
+        const costBasis = totalInvested > 0 ? totalInvested : undefined
+
+        // Calculate Market Value based on BEST AVAILABLE quantity info
+        // If we have purchases, use their total quantity to ensure consistency (P&L = Market Value - Cost Basis)
+        // Otherwise use asset.quantity from DB
+        const effectiveQuantity = purchases.length > 0 ? totalQuantityFromPurchases : asset.quantity
+
         let currentPrice = 0
         let marketValue = 0
 
         if (asset.valuation_mode === "auto" && asset.symbol) {
             currentPrice = await PriceService.getPrice(asset.symbol, asset.currency)
-            marketValue = currentPrice * asset.quantity
+            marketValue = currentPrice * effectiveQuantity
         } else {
+            // Manual mode: use manual value directly
             marketValue = asset.manual_value || 0
-            currentPrice = asset.quantity > 0 ? marketValue / asset.quantity : 0
+            currentPrice = effectiveQuantity > 0 ? marketValue / effectiveQuantity : 0
         }
-
-        // Use 'buy_price' from DB
-        const buyPrice = asset.buy_price || 0
-        const totalInvested = buyPrice * asset.quantity
 
         // Calculate P&L
         let pnlValue: number | undefined
@@ -52,10 +73,11 @@ export async function getAssets() {
             current_value: marketValue,
             current_price: currentPrice,
             market_value: marketValue,
-            buy_price: buyPrice > 0 ? buyPrice : undefined, // Return as buy_price
+            buy_price: asset.buy_price,
             total_invested: totalInvested > 0 ? totalInvested : undefined,
             pnl_value: pnlValue,
             pnl_percent: pnlPercent,
+            purchases: asset.asset_purchases || [],
         } as Asset
     }))
 
@@ -107,6 +129,24 @@ export async function addAsset(formData: {
 
     if (error) throw error
 
+    // Create initial purchase if quantity is positive (even if price is 0)
+    // This ensures "Every add" is recorded in the purchase history for the unified view
+    if (formData.quantity > 0) {
+        const { error: purchaseError } = await supabase.from("asset_purchases").insert({
+            asset_id: asset.id,
+            user_id: user.id,
+            quantity: formData.quantity,
+            unit_price: (formData.buy_price != null && formData.buy_price > 0) ? Number(formData.buy_price) : 0,
+            fees: formData.fees ? Number(formData.fees) : 0,
+            purchase_date: formData.buy_date || new Date().toISOString(), // Default to now if not provided
+            notes: formData.notes || "Création initiale"
+        })
+        if (purchaseError) {
+            console.error("Failed to create initial purchase:", purchaseError)
+            throw new Error(`Erreur lors de la création de l'historique: ${purchaseError.message}`)
+        }
+    }
+
     revalidatePath("/dashboard")
     revalidatePath("/assets")
 }
@@ -117,7 +157,7 @@ export async function updateAsset(id: string, formData: Partial<{
     symbol: string
     quantity: number
     manual_value: number
-    buy_price: number
+    buy_price: number | string // Allow string for flexible checking
     buy_date: string
     fees: number
     notes: string
@@ -138,8 +178,6 @@ export async function updateAsset(id: string, formData: Partial<{
 
     // Validation
     if (formData.quantity != null && formData.quantity < 0) throw new Error("Quantity must be positive")
-    if (formData.buy_price != null && formData.buy_price < 0) throw new Error("Buy price must be positive")
-    if (formData.fees != null && formData.fees < 0) throw new Error("Fees must be positive or zero")
 
     // STRICT WHITELISTING & TYPE COERCION
     const updateData: any = {}
@@ -155,7 +193,9 @@ export async function updateAsset(id: string, formData: Partial<{
 
     // Updated mappings for actual DB columns
     if (formData.buy_price !== undefined) {
-        updateData.buy_price = (formData.buy_price === '' || formData.buy_price === null) ? null : Number(formData.buy_price)
+        // Handle empty string or null
+        const val = formData.buy_price
+        updateData.buy_price = (val === '' || val === null) ? null : Number(val)
     }
     if (formData.buy_date !== undefined) updateData.buy_date = formData.buy_date || null
     if (formData.fees !== undefined) updateData.fees = Number(formData.fees)

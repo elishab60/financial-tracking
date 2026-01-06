@@ -2,9 +2,10 @@
 
 import React, { useState, useMemo } from "react"
 import { motion, AnimatePresence } from "framer-motion"
-import { Info, Globe, Clock, ArrowUpRight, ArrowDownRight } from "lucide-react"
+import { Globe as GlobeIcon, Clock, ArrowUpRight, ArrowDownRight } from "lucide-react"
 import { Card } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
+import Globe from "@/components/ui/globe"
 
 interface Hub {
     id: string
@@ -14,160 +15,114 @@ interface Hub {
     status: "open" | "closed"
     change: number
     price: string
-    lat: number // Percentage from top
-    lng: number // Percentage from left
+    lat: number
+    lng: number
 }
 
 const hubs: Hub[] = [
-    { id: "ny", name: "Wall Street", city: "New York", index: "S&P 500", status: "open", change: 1.25, price: "5,123.40", lat: 35, lng: 25 },
-    { id: "london", name: "LSE", city: "London", index: "FTSE 100", status: "closed", change: -0.42, price: "7,624.12", lat: 25, lng: 46 },
-    { id: "paris", name: "Euronext", city: "Paris", index: "CAC 40", status: "closed", change: 0.15, price: "7,932.40", lat: 28, lng: 48 },
-    { id: "tokyo", name: "TSE", city: "Tokyo", index: "Nikkei 225", status: "closed", change: 2.10, price: "39,234.55", lat: 38, lng: 85 },
-    { id: "hk", name: "HKEX", city: "Hong Kong", index: "Hang Seng", status: "closed", change: -1.15, price: "16,543.20", lat: 45, lng: 78 },
-    { id: "sydney", name: "ASX", city: "Sydney", index: "ASX 200", status: "open", change: 0.55, price: "7,712.30", lat: 75, lng: 88 },
+    { id: "ny", name: "Wall Street", city: "New York", index: "S&P 500", status: "open", change: 1.25, price: "5,123.40", lat: 40.7128, lng: -74.0060 },
+    { id: "london", name: "LSE", city: "London", index: "FTSE 100", status: "closed", change: -0.42, price: "7,624.12", lat: 51.5074, lng: -0.1278 },
+    { id: "paris", name: "Euronext", city: "Paris", index: "CAC 40", status: "closed", change: 0.15, price: "7,932.40", lat: 48.8566, lng: 2.3522 },
+    { id: "tokyo", name: "TSE", city: "Tokyo", index: "Nikkei 225", status: "closed", change: 2.10, price: "39,234.55", lat: 35.6762, lng: 139.6503 },
+    { id: "hk", name: "HKEX", city: "Hong Kong", index: "Hang Seng", status: "closed", change: -1.15, price: "16,543.20", lat: 22.3193, lng: 114.1694 },
+    { id: "sydney", name: "ASX", city: "Sydney", index: "ASX 200", status: "open", change: 0.55, price: "7,712.30", lat: -33.8688, lng: 151.2093 },
 ]
 
 export function MarketWorldMap() {
-    const [hoveredHub, setHoveredHub] = useState<Hub | null>(null)
+    const [activeHubIdx, setActiveHubIdx] = useState(0)
+
+    const globeMarkers = useMemo(() =>
+        hubs.map(hub => ({
+            location: [hub.lat, hub.lng] as [number, number],
+            size: hub.status === "open" ? 0.08 : 0.04
+        }))
+        , [])
+
+    // Cycle through hubs for the bottom display
+    React.useEffect(() => {
+        const timer = setInterval(() => {
+            setActiveHubIdx(prev => (prev + 1) % hubs.length)
+        }, 3000)
+        return () => clearInterval(timer)
+    }, [])
 
     return (
-        <Card className="glass-card bg-black/40 border-none p-10 rounded-[2.5rem] relative overflow-hidden min-h-[500px] flex flex-col group">
-            <div className="flex items-center justify-between mb-8 relative z-10">
-                <div className="flex items-center gap-3">
-                    <div className="p-2.5 rounded-xl bg-white/5 border border-white/10 text-zinc-400">
-                        <Globe className="w-5 h-5" />
+        <Card className="glass-card bg-zinc-950 border-white/5 rounded-[2.5rem] relative overflow-hidden flex flex-col group min-h-[700px] shadow-2xl items-center justify-center">
+            {/* Header Overlay */}
+            <div className="absolute top-0 left-0 right-0 p-10 z-30 pointer-events-none flex justify-between items-start">
+                <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-2xl bg-zinc-900 border border-white/10 flex items-center justify-center text-zinc-400">
+                        <GlobeIcon className="w-6 h-6 animate-pulse" />
                     </div>
                     <div>
-                        <h3 className="text-xl font-bold text-white tracking-tight">Marchés Mondiaux</h3>
-                        <p className="text-[10px] text-zinc-500 font-bold uppercase tracking-[0.2em] mt-0.5">Performance en temps réel</p>
+                        <h3 className="text-2xl font-black text-white tracking-tighter uppercase">Marchés Mondiaux</h3>
                     </div>
                 </div>
-                <div className="flex gap-4">
-                    <div className="flex items-center gap-2">
+
+                <div className="flex gap-3 pointer-events-auto">
+                    <div className="px-4 py-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center gap-2 backdrop-blur-md">
                         <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                        <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Open</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-rose-500" />
-                        <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Closed</span>
+                        <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">Real-time Feed</span>
                     </div>
                 </div>
             </div>
 
-            {/* Map Container */}
-            <div className="flex-1 relative mt-4">
-                {/* Stylized Dot Matrix Map Background */}
-                <div className="absolute inset-0 opacity-[0.15] bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:24px_24px] pointer-events-none" />
+            {/* 3D Globe Container */}
+            <div className="relative z-10 scale-110 md:scale-125 transition-transform duration-[2000ms] group-hover:scale-[1.3] ease-out">
+                <Globe
+                    markers={globeMarkers}
+                    className="opacity-90 grayscale-[0.2] hover:grayscale-0 transition-all duration-1000"
+                />
+            </div>
 
-                {/* Simple World Outline (Optional for better context) */}
-                <svg className="absolute inset-0 w-full h-full opacity-[0.03] select-none pointer-events-none" viewBox="0 0 1000 500" preserveAspectRatio="xMidYMid slice">
-                    <path d="M150,150 Q200,100 300,150 T500,150 T700,100 T850,200 T700,350 T500,400 T300,350 T150,300 Z" fill="currentColor" className="text-white" />
-                    {/* Replace with a more accurate path if needed, but the aesthetic dots are primary */}
-                </svg>
-
-                {/* Hubs Markers */}
-                {hubs.map((hub) => (
-                    <div
-                        key={hub.id}
-                        className="absolute"
-                        style={{ top: `${hub.lat}%`, left: `${hub.lng}%` }}
-                    >
-                        <button
-                            onMouseEnter={() => setHoveredHub(hub)}
-                            onMouseLeave={() => setHoveredHub(null)}
-                            className={cn(
-                                "group/marker relative flex items-center justify-center w-8 h-8 -translate-x-1/2 -translate-y-1/2 transition-all duration-300",
-                                hoveredHub?.id === hub.id ? "scale-125" : "scale-100"
-                            )}
+            {/* Bottom Floating Stats Sidebar - Carousel-like */}
+            <div className="absolute bottom-10 left-10 right-10 z-30 pointer-events-none flex justify-between items-end">
+                <div className="flex gap-4 pointer-events-auto">
+                    <AnimatePresence mode="wait">
+                        <motion.div
+                            key={hubs[activeHubIdx].id}
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: 20 }}
+                            className="flex gap-4"
                         >
-                            {/* Marker Rings */}
-                            <div className={cn(
-                                "absolute inset-0 rounded-full animate-ping opacity-20",
-                                hub.status === "open" ? "bg-emerald-500" : "bg-rose-500"
-                            )} />
-                            <div className={cn(
-                                "absolute inset-0 rounded-full opacity-10",
-                                hub.status === "open" ? "bg-emerald-500" : "bg-rose-500"
-                            )} />
-
-                            {/* Core Point */}
-                            <div className={cn(
-                                "w-2.5 h-2.5 rounded-full border-2 border-black relative z-10 transition-all shadow-xl",
-                                hub.status === "open" ? "bg-emerald-500" : "bg-rose-500"
-                            )} />
-
-                            {/* Tooltip Popup */}
-                            <AnimatePresence>
-                                {hoveredHub?.id === hub.id && (
-                                    <motion.div
-                                        initial={{ opacity: 0, y: 10, scale: 0.9 }}
-                                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                                        exit={{ opacity: 0, y: 10, scale: 0.9 }}
-                                        className="absolute bottom-full mb-4 left-1/2 -translate-x-1/2 z-50 pointer-events-none"
-                                    >
-                                        <Card className="glass-card bg-zinc-950/90 border-white/10 p-4 min-w-[180px] shadow-2xl backdrop-blur-xl">
-                                            <div className="space-y-3">
-                                                <div className="flex items-center justify-between gap-4">
-                                                    <span className="text-[10px] font-black text-white uppercase tracking-wider">{hub.city}</span>
-                                                    <div className={cn(
-                                                        "px-1.5 py-0.5 rounded text-[8px] font-black uppercase tracking-tighter",
-                                                        hub.status === "open" ? "bg-emerald-500/20 text-emerald-400" : "bg-rose-500/20 text-rose-400"
-                                                    )}>
-                                                        {hub.status}
-                                                    </div>
-                                                </div>
-                                                <div className="space-y-1">
-                                                    <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-widest">{hub.index}</p>
-                                                    <div className="flex items-center justify-between">
-                                                        <span className="text-lg font-black text-white">{hub.price}</span>
-                                                        <div className={cn(
-                                                            "flex items-center text-[10px] font-black",
-                                                            hub.change >= 0 ? "text-emerald-400" : "text-rose-400"
-                                                        )}>
-                                                            {hub.change >= 0 ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
-                                                            {Math.abs(hub.change)}%
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            {/* Arrow */}
-                                            <div className="absolute top-full left-1/2 -translate-x-1/2 -mt-[1px] w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-white/10" />
-                                        </Card>
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
-                        </button>
-                    </div>
-                ))}
-            </div>
-
-            {/* Bottom Info Bar */}
-            <div className="mt-8 pt-6 border-t border-white/5 flex items-center justify-between">
-                <div className="flex gap-8">
-                    {hubs.slice(0, 3).map(hub => (
-                        <div key={hub.id} className="flex flex-col gap-1">
-                            <span className="text-[9px] font-bold text-zinc-600 uppercase tracking-widest">{hub.index}</span>
-                            <div className="flex items-center gap-2">
-                                <span className="text-sm font-bold text-white tracking-tight">{hub.price}</span>
-                                <span className={cn(
-                                    "text-[10px] font-bold",
-                                    hub.change >= 0 ? "text-emerald-500" : "text-rose-500"
-                                )}>
-                                    {hub.change >= 0 ? "+" : ""}{hub.change}%
-                                </span>
-                            </div>
-                        </div>
-                    ))}
+                            {[
+                                hubs[activeHubIdx],
+                                hubs[(activeHubIdx + 1) % hubs.length],
+                                hubs[(activeHubIdx + 2) % hubs.length]
+                            ].map(hub => (
+                                <Card key={hub.id} className="bg-zinc-950/40 border-white/5 backdrop-blur-md p-4 px-6 rounded-2xl hover:bg-zinc-900/60 transition-all group/stat min-w-[180px]">
+                                    <div className="flex items-center justify-between mb-1">
+                                        <span className="text-[9px] font-black text-zinc-500 uppercase tracking-[0.2em] group-hover/stat:text-[#c5a059] transition-colors">{hub.index}</span>
+                                        <div className={cn(
+                                            "w-1.5 h-1.5 rounded-full",
+                                            hub.status === "open" ? "bg-emerald-500" : "bg-rose-500"
+                                        )} />
+                                    </div>
+                                    <div className="flex items-center justify-between gap-3">
+                                        <span className="text-sm font-black text-white">{hub.price}</span>
+                                        <span className={cn(
+                                            "text-[10px] font-bold flex items-center gap-1",
+                                            hub.change >= 0 ? "text-emerald-500" : "text-rose-500"
+                                        )}>
+                                            {hub.change >= 0 ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
+                                            {Math.abs(hub.change)}%
+                                        </span>
+                                    </div>
+                                </Card>
+                            ))}
+                        </motion.div>
+                    </AnimatePresence>
                 </div>
-                <div className="text-right">
-                    <p className="text-[9px] font-bold text-zinc-500 uppercase tracking-widest flex items-center gap-2 justify-end">
-                        <Clock className="w-3 h-3" /> Updated 2m ago
-                    </p>
+                <div className="bg-zinc-950/40 border-white/5 backdrop-blur-md p-3 px-5 rounded-full flex items-center gap-3">
+                    <Clock className="w-3.5 h-3.5 text-[#c5a059]" />
+                    <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest tabular-nums">Market Pulse Active</span>
                 </div>
             </div>
 
-            {/* Background Gradient */}
-            <div className="absolute top-0 right-0 w-full h-full bg-linear-to-br from-white/[0.02] to-transparent pointer-events-none" />
+            {/* Glow Overlays for atmosphere */}
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_30%,#09090b_100%)] pointer-events-none z-15 opacity-80" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-emerald-500/5 blur-[120px] rounded-full pointer-events-none z-0" />
         </Card>
     )
 }

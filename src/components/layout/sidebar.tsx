@@ -20,6 +20,7 @@ const navigation = [
     { name: 'Recherche', href: '/recherche', icon: Search },
     { name: 'Comptes', href: '/accounts', icon: CreditCard },
     { name: 'Transactions', href: '/transactions', icon: ArrowLeftRight },
+    { name: 'Budget', href: '/budget', icon: TrendingUp },
     { name: 'Paramètres', href: '/settings', icon: Settings },
 ]
 

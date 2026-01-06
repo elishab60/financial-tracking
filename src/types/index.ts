@@ -107,3 +107,38 @@ export interface DashboardStats {
     change?: number;
   }[];
 }
+
+export interface BudgetCategory {
+  id: string;
+  user_id: string;
+  name: string;
+  target_amount: number;
+  icon?: string;
+  color?: string;
+  type: 'expense' | 'investment';
+  group_name?: string;
+  created_at: string;
+}
+
+export interface BudgetIncome {
+  id: string;
+  user_id: string;
+  name: string;
+  amount: number;
+  is_recurring: boolean;
+  created_at: string;
+}
+
+export interface BudgetSummary {
+  totalIncome: number;
+  totalBudgeted: number;
+  totalSpent: number;
+  remaining: number;
+  savingsMargin: number;
+  savingsRate: number;
+  categories: (BudgetCategory & {
+    spent: number;
+    remaining: number;
+    percentage: number;
+  })[];
+}

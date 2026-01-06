@@ -5,6 +5,7 @@ import { ResearchSearchBar } from "@/components/research/search-bar"
 import { PriceChart } from "@/components/research/price-chart"
 import { KeyMetrics } from "@/components/research/key-metrics"
 import { NewsFeed } from "@/components/research/news-feed"
+import { MarketWorldMap } from "@/components/research/market-world-map"
 import { Search, TrendingUp, BarChart3, Newspaper, Sparkles } from "lucide-react"
 
 export default function RecherchePage() {
@@ -83,29 +84,36 @@ export default function RecherchePage() {
                     </section>
                 </div>
             ) : (
-                /* Empty State */
-                <div className="flex flex-col items-center justify-center py-24">
-                    <div className="w-24 h-24 rounded-3xl bg-white/[0.02] border border-white/5 flex items-center justify-center mb-6">
-                        <Sparkles className="w-12 h-12 text-zinc-700" />
-                    </div>
-                    <h3 className="text-xl font-bold text-zinc-400 mb-2">
-                        Recherchez un actif
-                    </h3>
-                    <p className="text-sm text-zinc-600 text-center max-w-md">
-                        Utilisez la barre de recherche pour trouver des actions, des cryptomonnaies, des ETFs et plus encore.
-                    </p>
+                /* Empty State with World Map */
+                <div className="space-y-12 pb-24">
+                    {/* Market Map Section */}
+                    <section className="animate-in fade-in slide-in-from-bottom-4 duration-1000">
+                        <MarketWorldMap />
+                    </section>
 
-                    {/* Quick Suggestions */}
-                    <div className="flex flex-wrap gap-3 mt-8 justify-center">
-                        {["AAPL", "MSFT", "BTC-USD", "GOOGL", "TSLA"].map((symbol) => (
-                            <button
-                                key={symbol}
-                                onClick={() => handleSelectSymbol(symbol, symbol)}
-                                className="px-4 py-2 bg-white/[0.02] border border-white/5 rounded-xl text-[10px] font-bold text-zinc-500 uppercase tracking-widest hover:bg-white/5 hover:text-white hover:border-white/10 transition-all"
-                            >
-                                {symbol}
-                            </button>
-                        ))}
+                    {/* Quick Search Section */}
+                    <div className="flex flex-col items-center justify-center pt-8">
+                        <div className="w-16 h-16 rounded-2xl bg-white/[0.02] border border-white/5 flex items-center justify-center mb-6">
+                            <Sparkles className="w-8 h-8 text-zinc-700" />
+                        </div>
+                        <h3 className="text-xl font-bold text-zinc-400 mb-2">
+                            Besoin d'aide ?
+                        </h3>
+                        <p className="text-sm text-zinc-600 text-center max-w-md mb-8">
+                            Recherchez n'importe quel actif pour obtenir des analyses détaillées, des graphiques en temps réel et les dernières actualités.
+                        </p>
+
+                        <div className="flex flex-wrap gap-3 justify-center">
+                            {["AAPL", "MSFT", "BTC-USD", "GOOGL", "TSLA"].map((symbol) => (
+                                <button
+                                    key={symbol}
+                                    onClick={() => handleSelectSymbol(symbol, symbol)}
+                                    className="px-6 py-3 bg-white/[0.02] border border-white/5 rounded-2xl text-[11px] font-bold text-zinc-500 uppercase tracking-widest hover:bg-white/5 hover:text-white hover:border-white/10 transition-all hover:scale-105 active:scale-95"
+                                >
+                                    {symbol}
+                                </button>
+                            ))}
+                        </div>
                     </div>
                 </div>
             )}

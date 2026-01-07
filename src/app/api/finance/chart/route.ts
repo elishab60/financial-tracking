@@ -35,7 +35,7 @@ export async function GET(req: NextRequest) {
             },
             "1y": {
                 period1: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000),
-                interval: "1wk"
+                interval: "1d"
             },
             "5y": {
                 period1: new Date(Date.now() - 5 * 365 * 24 * 60 * 60 * 1000),

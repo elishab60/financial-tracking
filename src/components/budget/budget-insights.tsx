@@ -39,7 +39,7 @@ export function BudgetInsights({
         Object.values(expenseGroups).forEach(groupItems => {
             groupItems.forEach(item => {
                 if (item.target_amount > 0) {
-                    items.push({ name: item.name, value: item.target_amount });
+                    items.push({ id: item.id, name: item.name, value: item.target_amount });
                 }
             });
         });
@@ -52,7 +52,7 @@ export function BudgetInsights({
         Object.values(investmentGroups).forEach(groupItems => {
             groupItems.forEach(item => {
                 if (item.target_amount > 0) {
-                    items.push({ name: item.name, value: item.target_amount });
+                    items.push({ id: item.id, name: item.name, value: item.target_amount });
                 }
             });
         });
@@ -149,7 +149,7 @@ export function BudgetInsights({
                     </div>
                     <div className="mt-8 space-y-2 max-h-[150px] overflow-y-auto pr-2 custom-scrollbar">
                         {detailedExpenses.map((d, i) => (
-                            <div key={d.name} className="flex items-center justify-between text-xs group">
+                            <div key={d.id} className="flex items-center justify-between text-xs group">
                                 <div className="flex items-center gap-3">
                                     <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: COLORS_EXP[i % COLORS_EXP.length] }} />
                                     <span className="text-zinc-400 group-hover:text-zinc-200 transition-colors">{d.name}</span>
@@ -194,7 +194,7 @@ export function BudgetInsights({
                     </div>
                     <div className="mt-8 space-y-2 max-h-[150px] overflow-y-auto pr-2 custom-scrollbar">
                         {detailedInvestments.map((d, i) => (
-                            <div key={d.name} className="flex items-center justify-between text-xs group">
+                            <div key={d.id} className="flex items-center justify-between text-xs group">
                                 <div className="flex items-center gap-3">
                                     <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: COLORS_INV[i % COLORS_INV.length] }} />
                                     <span className="text-zinc-400 group-hover:text-zinc-200 transition-colors">{d.name}</span>

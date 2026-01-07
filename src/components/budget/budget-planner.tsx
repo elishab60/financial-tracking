@@ -350,7 +350,7 @@ function EditorSection({ title, items, onUpdate, onDelete, onAdd, onRenameGroup,
                             <input
                                 autoFocus
                                 className="bg-white/5 border border-white/10 rounded-lg px-3 py-1 text-white font-bold text-xl outline-none focus:border-[#c5a059]"
-                                value={newTitle}
+                                value={newTitle || ""}
                                 onChange={(e) => setNewTitle(e.target.value)}
                                 onKeyDown={(e) => e.key === 'Enter' && handleTitleSave()}
                             />
@@ -388,7 +388,7 @@ function EditorSection({ title, items, onUpdate, onDelete, onAdd, onRenameGroup,
                         <div className="col-span-7 relative">
                             <input
                                 className="w-full bg-transparent border-none text-white focus:outline-none focus:ring-0 placeholder:text-zinc-800 text-lg font-medium"
-                                value={item.name}
+                                value={item.name || ""}
                                 onChange={(e) => onUpdate(item.id, { name: e.target.value })}
                             />
                             <div className="absolute bottom-[-10px] left-0 right-0 h-[1px] bg-white/5 group-hover:bg-white/10 transition-colors" />

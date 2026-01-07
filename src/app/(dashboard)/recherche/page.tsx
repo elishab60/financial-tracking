@@ -6,7 +6,9 @@ import { PriceChart } from "@/components/research/price-chart"
 import { KeyMetrics } from "@/components/research/key-metrics"
 import { NewsFeed } from "@/components/research/news-feed"
 import { MarketWorldMap } from "@/components/research/market-world-map"
-import { Search, TrendingUp, BarChart3, Newspaper, Sparkles, ArrowLeft } from "lucide-react"
+import { QuantAnalysis } from "@/components/research/quant-analysis"
+import { QuantToolsGuide } from "@/components/research/quant-tools-guide"
+import { Search, TrendingUp, BarChart3, Newspaper, Sparkles, ArrowLeft, Brain } from "lucide-react"
 
 export default function RecherchePage() {
     const [selectedSymbol, setSelectedSymbol] = useState<string | null>(null)
@@ -100,6 +102,16 @@ export default function RecherchePage() {
                             </h3>
                         </div>
                         <PriceChart symbol={selectedSymbol} />
+                    </section>
+
+                    {/* Quant Analysis */}
+                    <section>
+                        <QuantAnalysis symbol={selectedSymbol} />
+                    </section>
+
+                    {/* Quant Tools Guide */}
+                    <section>
+                        <QuantToolsGuide />
                     </section>
 
                     {/* News Feed */}

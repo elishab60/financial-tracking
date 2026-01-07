@@ -22,6 +22,7 @@ import { cn } from "@/lib/utils"
 import { AssetIcon } from "@/components/ui/asset-icon"
 import { AssetActions } from "@/components/assets/asset-actions"
 import { InvestmentAccountDialog } from "@/components/assets/investment-account-dialog"
+import { AssetDetailDialog } from "@/components/assets/asset-detail-dialog"
 import { toast } from "sonner"
 
 interface AccountsGroupedViewProps {
@@ -58,6 +59,7 @@ export function AccountsGroupedView({ assets }: AccountsGroupedViewProps) {
     const [showCreateDialog, setShowCreateDialog] = useState(false)
     const [draggingAsset, setDraggingAsset] = useState<string | null>(null)
     const [dragOverAccount, setDragOverAccount] = useState<string | null>(null)
+    const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null)
 
     useEffect(() => {
         loadAccounts()
@@ -231,8 +233,9 @@ export function AccountsGroupedView({ assets }: AccountsGroupedViewProps) {
                                                 draggable
                                                 onDragStart={(e) => handleDragStart(e, asset.id)}
                                                 onDragEnd={handleDragEnd}
+                                                onClick={() => setSelectedAsset(asset)}
                                                 className={cn(
-                                                    "p-4 pl-8 flex items-center gap-4 hover:bg-white/[0.02] transition-colors group cursor-grab active:cursor-grabbing",
+                                                    "p-4 pl-8 flex items-center gap-4 hover:bg-white/[0.02] transition-colors group cursor-pointer",
                                                     draggingAsset === asset.id && "opacity-50"
                                                 )}
                                             >
@@ -322,8 +325,9 @@ export function AccountsGroupedView({ assets }: AccountsGroupedViewProps) {
                                         draggable
                                         onDragStart={(e) => handleDragStart(e, asset.id)}
                                         onDragEnd={handleDragEnd}
+                                        onClick={() => setSelectedAsset(asset)}
                                         className={cn(
-                                            "p-4 pl-8 flex items-center gap-4 hover:bg-white/[0.02] transition-colors group cursor-grab active:cursor-grabbing",
+                                            "p-4 pl-8 flex items-center gap-4 hover:bg-white/[0.02] transition-colors group cursor-pointer",
                                             draggingAsset === asset.id && "opacity-50"
                                         )}
                                     >
@@ -375,6 +379,14 @@ export function AccountsGroupedView({ assets }: AccountsGroupedViewProps) {
                 onOpenChange={setShowCreateDialog}
                 onSuccess={loadAccounts}
             />
+
+            {selectedAsset && (
+                <AssetDetailDialog
+                    asset={selectedAsset}
+                    open={!!selectedAsset}
+                    onOpenChange={(open) => !open && setSelectedAsset(null)}
+                />
+            )}
         </div>
     )
 }

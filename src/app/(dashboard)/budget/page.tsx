@@ -1,15 +1,24 @@
-import { getBudgetData } from "@/app/actions/budget"
+import { getBudgetData, getBudgets } from "@/app/actions/budget"
 import { BudgetClient } from "./budget-client"
 
-export default async function BudgetPage() {
-    // Current month as fallback
-    const currentMonth = new Date().toISOString().slice(0, 7)
+export default async function BudgetPage(props: {
+    searchParams: Promise<{ month?: string; budgetId?: string }>
+}) {
+    const searchParams = await props.searchParams
+    const currentMonth = searchParams.month || new Date().toISOString().slice(0, 7)
+    const budgetId = searchParams.budgetId
 
     try {
-        const budgetData = await getBudgetData(currentMonth)
+        const budgets = await getBudgets()
+        const budgetData = await getBudgetData(currentMonth, budgetId)
+
         return (
             <div className="space-y-8">
-                <BudgetClient initialData={budgetData} />
+                <BudgetClient
+                    initialData={budgetData}
+                    budgets={budgets}
+                    currentBudgetId={budgetData.budgetId}
+                />
             </div>
         )
     } catch (error: any) {
@@ -29,8 +38,9 @@ export default async function BudgetPage() {
                         <div className="bg-black/40 p-4 rounded-xl border border-white/10 text-left mb-6">
                             <p className="text-xs font-mono text-zinc-500 mb-2"># SQL à exécuter dans Supabase :</p>
                             <pre className="text-xs font-mono text-cyan-400 overflow-x-auto">
-                                {`-- Appliquez le fichier :
-supabase/migrations/budget_tables.sql`}
+                                {`-- Appliquez les fichiers :
+supabase/migrations/budget_tables.sql
+supabase/migrations/budget_profiles.sql`}
                             </pre>
                         </div>
                         <p className="text-sm text-zinc-500">

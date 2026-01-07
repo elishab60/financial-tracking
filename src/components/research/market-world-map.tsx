@@ -75,31 +75,32 @@ export function MarketWorldMap() {
                 />
             </div>
 
-            {/* Bottom Floating Stats Sidebar - Carousel-like */}
-            <div className="absolute bottom-10 left-10 right-10 z-30 pointer-events-none flex justify-between items-end">
-                <div className="flex gap-4 pointer-events-auto">
+            {/* Bottom Right Floating Stats Sidebar - Vertical Carousel */}
+            <div className="absolute bottom-10 left-10 z-30 pointer-events-none flex flex-col items-end gap-6">
+
+                <div className="flex flex-col gap-3 pointer-events-auto items-end">
                     <AnimatePresence mode="wait">
                         <motion.div
                             key={hubs[activeHubIdx].id}
                             initial={{ opacity: 0, x: -20 }}
                             animate={{ opacity: 1, x: 0 }}
                             exit={{ opacity: 0, x: 20 }}
-                            className="flex gap-4"
+                            className="flex flex-col gap-3"
                         >
                             {[
                                 hubs[activeHubIdx],
                                 hubs[(activeHubIdx + 1) % hubs.length],
                                 hubs[(activeHubIdx + 2) % hubs.length]
                             ].map(hub => (
-                                <Card key={hub.id} className="bg-zinc-950/40 border-white/5 backdrop-blur-md p-4 px-6 rounded-2xl hover:bg-zinc-900/60 transition-all group/stat min-w-[180px]">
+                                <Card key={hub.id} className="bg-zinc-950/40 border-white/5 backdrop-blur-md p-4 px-6 rounded-2xl hover:bg-zinc-900/60 transition-all group/stat min-w-[220px] shadow-xl">
                                     <div className="flex items-center justify-between mb-1">
                                         <span className="text-[9px] font-black text-zinc-500 uppercase tracking-[0.2em] group-hover/stat:text-[#c5a059] transition-colors">{hub.index}</span>
                                         <div className={cn(
                                             "w-1.5 h-1.5 rounded-full",
-                                            hub.status === "open" ? "bg-emerald-500" : "bg-rose-500"
+                                            hub.status === "open" ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" : "bg-rose-500"
                                         )} />
                                     </div>
-                                    <div className="flex items-center justify-between gap-3">
+                                    <div className="flex items-center justify-between gap-4">
                                         <span className="text-sm font-black text-white">{hub.price}</span>
                                         <span className={cn(
                                             "text-[10px] font-bold flex items-center gap-1",
@@ -113,10 +114,6 @@ export function MarketWorldMap() {
                             ))}
                         </motion.div>
                     </AnimatePresence>
-                </div>
-                <div className="bg-zinc-950/40 border-white/5 backdrop-blur-md p-3 px-5 rounded-full flex items-center gap-3">
-                    <Clock className="w-3.5 h-3.5 text-[#c5a059]" />
-                    <span className="text-[10px] font-black text-zinc-400 uppercase tracking-widest tabular-nums">Market Pulse Active</span>
                 </div>
             </div>
 

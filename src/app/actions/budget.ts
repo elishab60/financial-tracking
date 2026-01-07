@@ -157,7 +157,7 @@ export async function getBudgetData(month?: string, budgetId?: string) {
     if (txError) throw txError
 
     return {
-        budgetId: targetBudgetId,
+        budgetId: targetBudgetId as string,
         categories: (categories || []) as BudgetCategory[],
         incomes: (incomes || []) as BudgetIncome[],
         transactions: (transactions || []) as Transaction[]

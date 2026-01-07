@@ -7,7 +7,7 @@ import { Card } from "@/components/ui/card"
 import { cn } from "@/lib/utils"
 import { BudgetSankey } from "./budget-sankey"
 import { BudgetInsights } from "./budget-insights"
-import { BudgetCategory, BudgetIncome, BudgetSummary } from "@/types"
+import { BudgetCategory, BudgetIncome, BudgetSummary, Budget } from "@/types"
 
 interface BudgetPlannerProps {
     summary: BudgetSummary

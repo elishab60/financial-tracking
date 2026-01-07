@@ -13,6 +13,8 @@ interface BudgetPlannerProps {
     summary: BudgetSummary
     categories: BudgetCategory[]
     incomes: BudgetIncome[]
+    budgets: Budget[]
+    currentBudgetId: string
     onUpdateCategory: (id: string, data: Partial<BudgetCategory>) => void
     onAddCategory: (name: string, target: number, type: 'expense' | 'investment', group_name?: string) => void
     onDeleteCategory: (id: string) => void
@@ -21,12 +23,17 @@ interface BudgetPlannerProps {
     onUpdateIncome: (id: string, data: Partial<BudgetIncome>) => void
     onAddIncome: (name: string, amount: number) => void
     onDeleteIncome: (id: string) => void
+    onCreateBudget: (name: string) => void
+    onSelectBudget: (id: string) => void
+    onDeleteBudget: (id: string) => void
 }
 
 export function BudgetPlanner({
     summary,
     categories,
     incomes,
+    budgets,
+    currentBudgetId,
     onUpdateCategory,
     onAddCategory,
     onDeleteCategory,
@@ -34,9 +41,14 @@ export function BudgetPlanner({
     onDeleteGroup,
     onUpdateIncome,
     onAddIncome,
-    onDeleteIncome
+    onDeleteIncome,
+    onCreateBudget,
+    onSelectBudget,
+    onDeleteBudget
 }: BudgetPlannerProps) {
     const [activeTab, setActiveTab] = useState<"revenus" | "depenses" | "investissements">("revenus")
+    const [isAddingBudget, setIsAddingBudget] = useState(false)
+    const [newBudgetName, setNewBudgetName] = useState("")
 
     // Total calculations
     const totalRevenus = incomes.reduce((sum, r) => sum + r.amount, 0)
@@ -124,6 +136,80 @@ export function BudgetPlanner({
                     Calculateur de budget
                 </h1>
                 <p className="text-zinc-500 font-medium tracking-widest uppercase text-[10px]">Simulation mensuelle & allocation stratégique</p>
+            </div>
+
+            {/* Budget Profiles Selector */}
+            <div className="flex flex-wrap items-center justify-center gap-4">
+                {budgets.map(budget => (
+                    <div key={budget.id} className="group relative">
+                        <button
+                            onClick={() => onSelectBudget(budget.id)}
+                            className={cn(
+                                "px-6 py-3 rounded-2xl text-xs font-bold uppercase tracking-widest transition-all relative overflow-hidden",
+                                currentBudgetId === budget.id
+                                    ? "bg-white text-black shadow-lg shadow-white/10"
+                                    : "bg-white/5 text-zinc-500 hover:bg-white/10 hover:text-white"
+                            )}
+                        >
+                            {budget.name}
+                        </button>
+                        {budgets.length > 1 && (
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation()
+                                    if (confirm("Supprimer ce profil de budget ?")) onDeleteBudget(budget.id)
+                                }}
+                                className="absolute -top-2 -right-2 p-1 bg-rose-500 text-white rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                                <X className="w-3 h-3" />
+                            </button>
+                        )}
+                    </div>
+                ))}
+
+                {isAddingBudget ? (
+                    <div className="flex items-center gap-2 bg-white/5 p-1 rounded-2xl border border-white/10 ml-2">
+                        <input
+                            autoFocus
+                            placeholder="Nom du profil..."
+                            className="bg-transparent border-none text-xs font-bold uppercase tracking-widest text-white px-4 py-2 outline-none w-40"
+                            value={newBudgetName}
+                            onChange={(e) => setNewBudgetName(e.target.value)}
+                            onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                    onCreateBudget(newBudgetName)
+                                    setIsAddingBudget(false)
+                                    setNewBudgetName("")
+                                }
+                                if (e.key === 'Escape') setIsAddingBudget(false)
+                            }}
+                        />
+                        <button
+                            onClick={() => {
+                                onCreateBudget(newBudgetName)
+                                setIsAddingBudget(false)
+                                setNewBudgetName("")
+                            }}
+                            className="p-2 bg-[#c5a059] text-black rounded-xl hover:bg-[#d4b57a] transition-all"
+                        >
+                            <Check className="w-3 h-3" />
+                        </button>
+                        <button
+                            onClick={() => setIsAddingBudget(false)}
+                            className="p-2 text-zinc-500 hover:text-white transition-all"
+                        >
+                            <X className="w-3 h-3" />
+                        </button>
+                    </div>
+                ) : (
+                    <button
+                        onClick={() => setIsAddingBudget(true)}
+                        className="flex items-center gap-2 px-6 py-3 rounded-2xl bg-white/5 text-zinc-500 hover:bg-[#c5a059]/10 hover:text-[#c5a059] border border-dashed border-white/10 transition-all text-xs font-bold uppercase tracking-widest"
+                    >
+                        <Plus className="w-4 h-4" />
+                        Nouveau profil
+                    </button>
+                )}
             </div>
 
             {/* 2. Editors Section (Moved Up) */}

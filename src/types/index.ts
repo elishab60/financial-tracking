@@ -142,3 +142,11 @@ export interface BudgetSummary {
     percentage: number;
   })[];
 }
+
+export interface Budget {
+  id: string;
+  user_id: string;
+  name: string;
+  is_active: boolean;
+  created_at: string;
+}

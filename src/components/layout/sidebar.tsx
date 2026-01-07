@@ -14,7 +14,8 @@ import {
     Search,
     User as UserIcon,
     LogOut,
-    ChevronUp
+    ChevronUp,
+    Calculator
 } from "lucide-react"
 import { useState, useEffect } from "react"
 import { createClient } from "@/lib/supabase/client"
@@ -27,6 +28,7 @@ const navigation = [
     { name: 'Comptes', href: '/accounts', icon: CreditCard },
     { name: 'Transactions', href: '/transactions', icon: ArrowLeftRight },
     { name: 'Budget', href: '/budget', icon: TrendingUp },
+    { name: 'Simulateurs', href: '/simulations', icon: Calculator },
     { name: 'Paramètres', href: '/settings', icon: Settings },
 ]
 

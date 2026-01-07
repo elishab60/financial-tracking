@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
 import { AssetIcon } from "@/components/ui/asset-icon"
+import { InvestmentAccountBadge } from "@/components/assets/investment-account-selector"
 import { cn } from "@/lib/utils"
 
 interface AssetsTableProps {
@@ -148,6 +149,9 @@ export function AssetsTable({ initialAssets }: AssetsTableProps) {
                                                     <span className="font-bold text-white text-sm">{asset.name}</span>
                                                     <div className="flex items-center gap-2 mt-1">
                                                         {asset.symbol && <span className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest">{asset.symbol}</span>}
+                                                        {asset.investment_account && (
+                                                            <InvestmentAccountBadge account={asset.investment_account} />
+                                                        )}
                                                     </div>
                                                 </div>
                                             </div>

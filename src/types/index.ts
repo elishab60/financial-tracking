@@ -2,6 +2,23 @@ export type Currency = string;
 
 export type AssetType = 'cash' | 'stock' | 'crypto' | 'real_estate' | 'debt' | 'other';
 
+export type InvestmentAccountType = 'pea' | 'pea_pme' | 'cto' | 'pee' | 'perco' | 'per' | 'assurance_vie' | 'crypto' | 'other';
+
+export interface InvestmentAccount {
+  id: string;
+  user_id: string;
+  name: string;
+  account_type: InvestmentAccountType;
+  broker_id?: string;
+  broker_name?: string;
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+  // Computed fields
+  total_value?: number;
+  asset_count?: number;
+}
+
 export interface Asset {
   id: string;
   user_id: string;
@@ -33,6 +50,10 @@ export interface Asset {
   cost_basis?: number; // Total Invested
   market_value?: number; // Total Value
   last_purchase_date?: string | null;
+
+  // Investment Account (grouping)
+  investment_account_id?: string;
+  investment_account?: InvestmentAccount;
 }
 
 export interface AssetPurchase {

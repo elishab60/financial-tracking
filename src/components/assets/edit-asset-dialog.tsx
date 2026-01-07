@@ -18,14 +18,17 @@ import {
     SelectTrigger,
     SelectValue
 } from "@/components/ui/select"
-import { Search, TrendingUp, TrendingDown, Target, Sparkles, Loader2, Calendar, DollarSign, ShoppingCart, Trash2, Pencil } from "lucide-react"
+import { Search, TrendingUp, TrendingDown, Target, Sparkles, Loader2, Calendar, DollarSign, ShoppingCart, Trash2, Pencil, FolderOpen } from "lucide-react"
 
 import { updateAsset, deleteAsset } from "@/app/actions/assets"
+import { getInvestmentAccounts } from "@/app/actions/investment-accounts"
 import { deletePurchase } from "@/app/actions/purchases"
 import { AddPurchaseDialog } from "./add-purchase-dialog"
 import { EditPurchaseDialog } from "./edit-purchase-dialog"
+import { InvestmentAccountSelector } from "@/components/assets/investment-account-selector"
+import { InvestmentAccountDialog } from "@/components/assets/investment-account-dialog"
 import { toast } from "sonner"
-import { Asset, AssetType, AssetPurchase } from "@/types"
+import { Asset, AssetType, AssetPurchase, InvestmentAccount } from "@/types"
 import { motion, AnimatePresence } from "framer-motion"
 import { cn } from "@/lib/utils"
 
@@ -48,6 +51,10 @@ export function EditAssetDialog({ asset, open, onOpenChange }: EditAssetDialogPr
     const [editingPurchase, setEditingPurchase] = useState<any | null>(null)
     const [deletingPurchaseId, setDeletingPurchaseId] = useState<string | null>(null)
 
+    // Investment accounts
+    const [investmentAccounts, setInvestmentAccounts] = useState<InvestmentAccount[]>([])
+    const [showAccountDialog, setShowAccountDialog] = useState(false)
+
     const [formData, setFormData] = useState({
         name: asset.name,
         type: asset.type,
@@ -58,8 +65,25 @@ export function EditAssetDialog({ asset, open, onOpenChange }: EditAssetDialogPr
         buy_date: asset.buy_date?.split('T')[0] || '', // Use stored buy_date
         fees: asset.fees || 0,
         currency: asset.currency,
-        valuation_mode: asset.valuation_mode
+        valuation_mode: asset.valuation_mode,
+        investment_account_id: asset.investment_account_id
     })
+
+    // Load investment accounts when dialog opens
+    useEffect(() => {
+        if (open) {
+            loadInvestmentAccounts()
+        }
+    }, [open])
+
+    const loadInvestmentAccounts = async () => {
+        try {
+            const accounts = await getInvestmentAccounts()
+            setInvestmentAccounts(accounts)
+        } catch (error) {
+            console.error("Failed to load investment accounts:", error)
+        }
+    }
 
     const searchWrapperRef = useRef<HTMLDivElement>(null)
 
@@ -85,7 +109,8 @@ export function EditAssetDialog({ asset, open, onOpenChange }: EditAssetDialogPr
                 buy_date: asset.buy_date?.split('T')[0] || '',
                 fees: asset.fees || 0,
                 currency: asset.currency,
-                valuation_mode: asset.valuation_mode
+                valuation_mode: asset.valuation_mode,
+                investment_account_id: asset.investment_account_id
             })
             setSearchQuery(asset.symbol || '')
             if (asset.symbol && asset.valuation_mode === 'auto') {
@@ -450,6 +475,20 @@ export function EditAssetDialog({ asset, open, onOpenChange }: EditAssetDialogPr
                                 </div>
                             </div>
 
+                            {/* Investment Account Selector */}
+                            <div className="space-y-2 pt-4 border-t border-white/5">
+                                <Label className="text-zinc-400 text-[10px] uppercase tracking-[0.2em] font-bold ml-1 flex items-center gap-2">
+                                    <FolderOpen className="w-3.5 h-3.5 text-gold" />
+                                    Compte d'investissement
+                                </Label>
+                                <InvestmentAccountSelector
+                                    accounts={investmentAccounts}
+                                    value={formData.investment_account_id}
+                                    onSelect={(id) => setFormData({ ...formData, investment_account_id: id || undefined })}
+                                    onCreateNew={() => setShowAccountDialog(true)}
+                                />
+                            </div>
+
                             {/* Purchases List - for auto mode assets */}
                             {formData.valuation_mode === 'auto' && (
                                 <div className="space-y-4 p-5 rounded-2xl bg-white/[0.02] border border-white/5">
@@ -581,6 +620,13 @@ export function EditAssetDialog({ asset, open, onOpenChange }: EditAssetDialogPr
                     />
                 )
             }
+
+            {/* Investment Account Creation Dialog */}
+            <InvestmentAccountDialog
+                open={showAccountDialog}
+                onOpenChange={setShowAccountDialog}
+                onSuccess={loadInvestmentAccounts}
+            />
         </>
     )
 }

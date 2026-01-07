@@ -11,10 +11,10 @@ export async function getAssets() {
 
     if (!user) throw new Error("Unauthorized")
 
-    // Fetch assets directly
+    // Fetch assets directly with investment account info
     const { data: assets, error } = await supabase
         .from("assets")
-        .select('*, asset_purchases(*)')
+        .select('*, asset_purchases(*), investment_accounts(*)')
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
 
@@ -106,6 +106,7 @@ export async function getAssets() {
             last_purchase_date: purchases.length > 0
                 ? purchases.reduce((latest, p) => (new Date(p.purchase_date || 0) > new Date(latest.purchase_date || 0) ? p : latest)).purchase_date
                 : asset.buy_date,
+            investment_account: asset.investment_accounts || undefined,
         } as Asset
     }))
 
@@ -124,6 +125,7 @@ export async function addAsset(formData: {
     notes?: string
     currency: string
     valuation_mode: 'manual' | 'auto'
+    investment_account_id?: string
 }) {
     const supabase = await createClient()
     const { data: { user } } = await supabase.auth.getUser()
@@ -149,7 +151,8 @@ export async function addAsset(formData: {
         buy_price: formData.buy_price ? Number(formData.buy_price) : null,
         buy_date: formData.buy_date || null,
         fees: formData.fees ? Number(formData.fees) : 0,
-        notes: formData.notes || null
+        notes: formData.notes || null,
+        investment_account_id: formData.investment_account_id || null
     }
 
     // Insert asset
@@ -191,6 +194,7 @@ export async function updateAsset(id: string, formData: Partial<{
     notes: string
     currency: string
     valuation_mode: 'manual' | 'auto'
+    investment_account_id: string | null
 }>) {
     console.log(`[UPDATE DEBUG] Function called for ID: ${id}`)
     console.log(`[UPDATE DEBUG] Incoming FormData:`, JSON.stringify(formData, null, 2))
@@ -228,6 +232,7 @@ export async function updateAsset(id: string, formData: Partial<{
     if (formData.buy_date !== undefined) updateData.buy_date = formData.buy_date || null
     if (formData.fees !== undefined) updateData.fees = Number(formData.fees)
     if (formData.notes !== undefined) updateData.notes = formData.notes
+    if (formData.investment_account_id !== undefined) updateData.investment_account_id = formData.investment_account_id || null
 
     console.log(`[UPDATE DEBUG] Final Payload to Supabase:`, JSON.stringify(updateData, null, 2))
 

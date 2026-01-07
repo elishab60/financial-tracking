@@ -1,12 +1,9 @@
 import { getAssets } from "@/app/actions/assets"
 import { AddAssetDialog } from "@/components/assets/add-asset-dialog"
-import { AssetsTable } from "@/components/assets/assets-table"
+import { AssetsPageClient } from "@/components/assets/assets-page-client"
 
 export default async function AssetsPage() {
     const assets = await getAssets()
-
-    const formatCurrency = (val: number) =>
-        new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(val)
 
     return (
         <div className="space-y-12 animate-in fade-in slide-in-from-bottom-6 duration-1000">
@@ -18,7 +15,8 @@ export default async function AssetsPage() {
                 <AddAssetDialog />
             </div>
 
-            <AssetsTable initialAssets={assets} />
+            <AssetsPageClient initialAssets={assets} />
         </div>
     )
 }
+

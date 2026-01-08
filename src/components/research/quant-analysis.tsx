@@ -19,15 +19,11 @@ import {
     Gauge,
     Waves,
     Clock,
-<<<<<<< HEAD
     RefreshCw,
     DollarSign,
     ShieldCheck,
     AlertTriangle,
     CheckCircle2
-=======
-    RefreshCw
->>>>>>> 780bba1c2c79f825b8bb0ad059d1bc3934cee467
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -44,7 +40,6 @@ interface HistoricalData {
     volume: number
 }
 
-<<<<<<< HEAD
 interface OptimalPrices {
     // Fibonacci-based levels
     fibonacci: {
@@ -75,8 +70,6 @@ interface OptimalPrices {
     takeProfit: number
 }
 
-=======
->>>>>>> 780bba1c2c79f825b8bb0ad059d1bc3934cee467
 interface AnalysisResult {
     // Linear Regression
     linearRegression: {
@@ -155,11 +148,8 @@ interface AnalysisResult {
         consensusSignal: 'strong_buy' | 'buy' | 'hold' | 'sell' | 'strong_sell'
         consensusScore: number
     }
-<<<<<<< HEAD
     // Optimal Buy/Sell Prices
     optimalPrices: OptimalPrices
-=======
->>>>>>> 780bba1c2c79f825b8bb0ad059d1bc3934cee467
     // Current price for reference
     currentPrice: number
 }
@@ -545,7 +535,6 @@ function calculateConsensus(
     return { signal, score }
 }
 
-<<<<<<< HEAD
 // ============ OPTIMAL BUY/SELL PRICE ALGORITHMS ============
 
 // Fibonacci Retracement Calculator
@@ -863,8 +852,6 @@ function calculateOptimalPrices(
     }
 }
 
-=======
->>>>>>> 780bba1c2c79f825b8bb0ad059d1bc3934cee467
 export function QuantAnalysis({ symbol }: QuantAnalysisProps) {
     const [analysis, setAnalysis] = useState<AnalysisResult | null>(null)
     const [loading, setLoading] = useState(true)
@@ -966,7 +953,6 @@ export function QuantAnalysis({ symbol }: QuantAnalysisProps) {
                     monteCarloResult.bullishProbability
                 )
 
-<<<<<<< HEAD
                 // Optimal Buy/Sell Prices
                 const fibonacci = calculateFibonacciLevels(highs, lows, closes)
                 const dynamicLevels = calculateDynamicSupportResistance(closes, currentPrice)
@@ -984,8 +970,6 @@ export function QuantAnalysis({ symbol }: QuantAnalysisProps) {
                     consensus.score
                 )
 
-=======
->>>>>>> 780bba1c2c79f825b8bb0ad059d1bc3934cee467
                 setAnalysis({
                     linearRegression: {
                         slope: lr.slope,
@@ -1026,10 +1010,7 @@ export function QuantAnalysis({ symbol }: QuantAnalysisProps) {
                         consensusSignal: consensus.signal,
                         consensusScore: consensus.score
                     },
-<<<<<<< HEAD
                     optimalPrices: optimalPricesResult,
-=======
->>>>>>> 780bba1c2c79f825b8bb0ad059d1bc3934cee467
                     currentPrice
                 })
                 setLastUpdated(new Date())
@@ -1069,11 +1050,7 @@ export function QuantAnalysis({ symbol }: QuantAnalysisProps) {
         )
     }
 
-<<<<<<< HEAD
     const { linearRegression: lr, movingAverages: ma, rsi, stochastic, atr, momentum, volatility, levels, mlPredictions, optimalPrices, currentPrice } = analysis
-=======
-    const { linearRegression: lr, movingAverages: ma, rsi, stochastic, atr, momentum, volatility, levels, mlPredictions, currentPrice } = analysis
->>>>>>> 780bba1c2c79f825b8bb0ad059d1bc3934cee467
     const priceChange = ((lr.predictedPrice - currentPrice) / currentPrice) * 100
 
     const consensusColors = {
@@ -1150,7 +1127,6 @@ export function QuantAnalysis({ symbol }: QuantAnalysisProps) {
                 </div>
             </div>
 
-<<<<<<< HEAD
             {/* ============ OPTIMAL PRICES SECTION ============ */}
             <div className="p-6 rounded-2xl bg-gradient-to-br from-emerald-500/15 via-gold/10 to-rose-500/15 border-2 border-gold/30 shadow-lg shadow-gold/5">
                 <div className="flex items-center gap-2 mb-5">
@@ -1352,8 +1328,6 @@ export function QuantAnalysis({ symbol }: QuantAnalysisProps) {
                 </div>
             </div>
 
-=======
->>>>>>> 780bba1c2c79f825b8bb0ad059d1bc3934cee467
             {/* ML Predictions Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* KNN Prediction */}
@@ -1708,6 +1682,6 @@ export function QuantAnalysis({ symbol }: QuantAnalysisProps) {
                     Elles ne constituent pas des conseils d'investissement. Les performances passées ne garantissent pas les résultats futurs.
                 </p>
             </div>
-        </div>
+        </div >
     )
 }

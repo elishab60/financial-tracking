@@ -23,7 +23,9 @@ import {
     DollarSign,
     ShieldCheck,
     AlertTriangle,
-    CheckCircle2
+    CheckCircle2,
+    ChevronDown,
+    ChevronUp
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
@@ -858,6 +860,7 @@ export function QuantAnalysis({ symbol }: QuantAnalysisProps) {
     const [error, setError] = useState<string | null>(null)
     const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
     const [dataPoints, setDataPoints] = useState<number>(0)
+    const [isPrixOptimOpen, setIsPrixOptimOpen] = useState(true)
 
     useEffect(() => {
         if (!symbol) return
@@ -1127,205 +1130,228 @@ export function QuantAnalysis({ symbol }: QuantAnalysisProps) {
                 </div>
             </div>
 
-            {/* ============ OPTIMAL PRICES SECTION ============ */}
-            <div className="p-6 rounded-2xl bg-gradient-to-br from-emerald-500/15 via-gold/10 to-rose-500/15 border-2 border-gold/30 shadow-lg shadow-gold/5">
-                <div className="flex items-center gap-2 mb-5">
+            {/* ============ OPTIMAL PRICES SECTION (Collapsible) ============ */}
+            <div className="rounded-2xl bg-gradient-to-br from-emerald-500/15 via-gold/10 to-rose-500/15 border-2 border-gold/30 shadow-lg shadow-gold/5 overflow-hidden">
+                {/* Clickable Header */}
+                <button
+                    onClick={() => setIsPrixOptimOpen(!isPrixOptimOpen)}
+                    className="w-full p-6 flex items-center gap-2 hover:bg-white/5 transition-colors cursor-pointer"
+                >
                     <DollarSign className="w-5 h-5 text-gold" />
                     <span className="text-[10px] font-black text-gold uppercase tracking-[0.2em]">
                         Prix Optimaux d'Achat & Vente
                     </span>
-                    <span className="ml-auto text-[9px] font-bold text-zinc-500 bg-white/5 px-2 py-1 rounded-lg">
+                    <span className="ml-2 text-[9px] font-bold text-zinc-500 bg-white/5 px-2 py-1 rounded-lg">
                         Fibonacci + K-Means + ML
                     </span>
-                </div>
+                    <div className="ml-auto flex items-center gap-2">
+                        <span className="text-[9px] font-bold text-emerald-400">
+                            Achat: {formatCurrency(optimalPrices.optimalBuyPrice)}
+                        </span>
+                        <span className="text-[9px] text-zinc-600">|</span>
+                        <span className="text-[9px] font-bold text-rose-400">
+                            Vente: {formatCurrency(optimalPrices.optimalSellPrice)}
+                        </span>
+                        {isPrixOptimOpen ? (
+                            <ChevronUp className="w-4 h-4 text-gold" />
+                        ) : (
+                            <ChevronDown className="w-4 h-4 text-gold" />
+                        )}
+                    </div>
+                </button>
 
-                {/* Main Buy/Sell Prices */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                    {/* Optimal Buy */}
-                    <div className="p-5 rounded-xl bg-gradient-to-br from-emerald-500/20 to-emerald-900/20 border border-emerald-500/30">
-                        <div className="flex items-center gap-2 mb-3">
-                            <ArrowDown className="w-4 h-4 text-emerald-400" />
-                            <span className="text-[9px] font-black text-emerald-400 uppercase tracking-widest">
-                                Prix d'Achat Optimal
-                            </span>
-                        </div>
-                        <div className="flex items-end justify-between mb-3">
-                            <div>
-                                <p className="text-3xl font-black text-emerald-400">
-                                    {formatCurrency(optimalPrices.optimalBuyPrice)}
-                                </p>
-                                <p className="text-[10px] text-zinc-500 font-bold mt-1">
-                                    {formatPercent(((optimalPrices.optimalBuyPrice - currentPrice) / currentPrice) * 100)} vs prix actuel
-                                </p>
-                            </div>
-                            <div className="text-right">
-                                <div className="flex items-center gap-1 justify-end">
-                                    <CheckCircle2 className="w-3 h-3 text-emerald-400" />
-                                    <span className="text-lg font-black text-emerald-400">
-                                        {optimalPrices.buyConfidence.toFixed(0)}%
+                {/* Collapsible Content */}
+                {isPrixOptimOpen && (
+                    <div className="px-6 pb-6 space-y-6">
+                        {/* Main Buy/Sell Prices */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            {/* Optimal Buy */}
+                            <div className="p-5 rounded-xl bg-gradient-to-br from-emerald-500/20 to-emerald-900/20 border border-emerald-500/30">
+                                <div className="flex items-center gap-2 mb-3">
+                                    <ArrowDown className="w-4 h-4 text-emerald-400" />
+                                    <span className="text-[9px] font-black text-emerald-400 uppercase tracking-widest">
+                                        Prix d'Achat Optimal
                                     </span>
                                 </div>
-                                <p className="text-[9px] text-zinc-600 font-bold">Confiance</p>
-                            </div>
-                        </div>
-                        <div className="space-y-1.5 pt-3 border-t border-emerald-500/20">
-                            <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-wider mb-2">Raisons :</p>
-                            {optimalPrices.buyReasoning.map((reason, idx) => (
-                                <div key={idx} className="flex items-center gap-2">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-                                    <span className="text-[10px] text-zinc-400 font-medium">{reason}</span>
+                                <div className="flex items-end justify-between mb-3">
+                                    <div>
+                                        <p className="text-3xl font-black text-emerald-400">
+                                            {formatCurrency(optimalPrices.optimalBuyPrice)}
+                                        </p>
+                                        <p className="text-[10px] text-zinc-500 font-bold mt-1">
+                                            {formatPercent(((optimalPrices.optimalBuyPrice - currentPrice) / currentPrice) * 100)} vs prix actuel
+                                        </p>
+                                    </div>
+                                    <div className="text-right">
+                                        <div className="flex items-center gap-1 justify-end">
+                                            <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                                            <span className="text-lg font-black text-emerald-400">
+                                                {optimalPrices.buyConfidence.toFixed(0)}%
+                                            </span>
+                                        </div>
+                                        <p className="text-[9px] text-zinc-600 font-bold">Confiance</p>
+                                    </div>
                                 </div>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Optimal Sell */}
-                    <div className="p-5 rounded-xl bg-gradient-to-br from-rose-500/20 to-rose-900/20 border border-rose-500/30">
-                        <div className="flex items-center gap-2 mb-3">
-                            <ArrowUp className="w-4 h-4 text-rose-400" />
-                            <span className="text-[9px] font-black text-rose-400 uppercase tracking-widest">
-                                Prix de Vente Optimal
-                            </span>
-                        </div>
-                        <div className="flex items-end justify-between mb-3">
-                            <div>
-                                <p className="text-3xl font-black text-rose-400">
-                                    {formatCurrency(optimalPrices.optimalSellPrice)}
-                                </p>
-                                <p className="text-[10px] text-zinc-500 font-bold mt-1">
-                                    {formatPercent(((optimalPrices.optimalSellPrice - currentPrice) / currentPrice) * 100)} vs prix actuel
-                                </p>
+                                <div className="space-y-1.5 pt-3 border-t border-emerald-500/20">
+                                    <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-wider mb-2">Raisons :</p>
+                                    {optimalPrices.buyReasoning.map((reason, idx) => (
+                                        <div key={idx} className="flex items-center gap-2">
+                                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                                            <span className="text-[10px] text-zinc-400 font-medium">{reason}</span>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
-                            <div className="text-right">
-                                <div className="flex items-center gap-1 justify-end">
-                                    <CheckCircle2 className="w-3 h-3 text-rose-400" />
-                                    <span className="text-lg font-black text-rose-400">
-                                        {optimalPrices.sellConfidence.toFixed(0)}%
+
+                            {/* Optimal Sell */}
+                            <div className="p-5 rounded-xl bg-gradient-to-br from-rose-500/20 to-rose-900/20 border border-rose-500/30">
+                                <div className="flex items-center gap-2 mb-3">
+                                    <ArrowUp className="w-4 h-4 text-rose-400" />
+                                    <span className="text-[9px] font-black text-rose-400 uppercase tracking-widest">
+                                        Prix de Vente Optimal
                                     </span>
                                 </div>
-                                <p className="text-[9px] text-zinc-600 font-bold">Confiance</p>
-                            </div>
-                        </div>
-                        <div className="space-y-1.5 pt-3 border-t border-rose-500/20">
-                            <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-wider mb-2">Raisons :</p>
-                            {optimalPrices.sellReasoning.map((reason, idx) => (
-                                <div key={idx} className="flex items-center gap-2">
-                                    <span className="w-1.5 h-1.5 rounded-full bg-rose-400"></span>
-                                    <span className="text-[10px] text-zinc-400 font-medium">{reason}</span>
+                                <div className="flex items-end justify-between mb-3">
+                                    <div>
+                                        <p className="text-3xl font-black text-rose-400">
+                                            {formatCurrency(optimalPrices.optimalSellPrice)}
+                                        </p>
+                                        <p className="text-[10px] text-zinc-500 font-bold mt-1">
+                                            {formatPercent(((optimalPrices.optimalSellPrice - currentPrice) / currentPrice) * 100)} vs prix actuel
+                                        </p>
+                                    </div>
+                                    <div className="text-right">
+                                        <div className="flex items-center gap-1 justify-end">
+                                            <CheckCircle2 className="w-3 h-3 text-rose-400" />
+                                            <span className="text-lg font-black text-rose-400">
+                                                {optimalPrices.sellConfidence.toFixed(0)}%
+                                            </span>
+                                        </div>
+                                        <p className="text-[9px] text-zinc-600 font-bold">Confiance</p>
+                                    </div>
                                 </div>
-                            ))}
+                                <div className="space-y-1.5 pt-3 border-t border-rose-500/20">
+                                    <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-wider mb-2">Raisons :</p>
+                                    {optimalPrices.sellReasoning.map((reason, idx) => (
+                                        <div key={idx} className="flex items-center gap-2">
+                                            <span className="w-1.5 h-1.5 rounded-full bg-rose-400"></span>
+                                            <span className="text-[10px] text-zinc-400 font-medium">{reason}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </div>
 
-                {/* Risk Management */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                    <div className="p-4 rounded-xl bg-white/[0.03] border border-white/10">
-                        <div className="flex items-center gap-2 mb-2">
-                            <ShieldCheck className="w-4 h-4 text-amber-400" />
-                            <span className="text-[9px] font-black text-amber-400 uppercase tracking-widest">Stop-Loss</span>
+                        {/* Risk Management */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                            <div className="p-4 rounded-xl bg-white/[0.03] border border-white/10">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <ShieldCheck className="w-4 h-4 text-amber-400" />
+                                    <span className="text-[9px] font-black text-amber-400 uppercase tracking-widest">Stop-Loss</span>
+                                </div>
+                                <p className="text-xl font-black text-amber-400">{formatCurrency(optimalPrices.stopLoss)}</p>
+                                <p className="text-[9px] text-zinc-600 font-bold mt-1">1.5x ATR sous le prix d'achat</p>
+                            </div>
+                            <div className="p-4 rounded-xl bg-white/[0.03] border border-white/10">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <Target className="w-4 h-4 text-cyan-400" />
+                                    <span className="text-[9px] font-black text-cyan-400 uppercase tracking-widest">Take-Profit</span>
+                                </div>
+                                <p className="text-xl font-black text-cyan-400">{formatCurrency(optimalPrices.takeProfit)}</p>
+                                <p className="text-[9px] text-zinc-600 font-bold mt-1">Prix de vente optimal</p>
+                            </div>
+                            <div className="p-4 rounded-xl bg-white/[0.03] border border-white/10">
+                                <div className="flex items-center gap-2 mb-2">
+                                    <Gauge className="w-4 h-4 text-purple-400" />
+                                    <span className="text-[9px] font-black text-purple-400 uppercase tracking-widest">Risk/Reward</span>
+                                </div>
+                                <p className={cn(
+                                    "text-xl font-black",
+                                    optimalPrices.riskRewardRatio >= 2 ? "text-emerald-400" :
+                                        optimalPrices.riskRewardRatio >= 1 ? "text-amber-400" : "text-rose-400"
+                                )}>
+                                    1:{optimalPrices.riskRewardRatio.toFixed(2)}
+                                </p>
+                                <p className="text-[9px] text-zinc-600 font-bold mt-1">
+                                    {optimalPrices.riskRewardRatio >= 2 ? "Excellent" :
+                                        optimalPrices.riskRewardRatio >= 1.5 ? "Bon" :
+                                            optimalPrices.riskRewardRatio >= 1 ? "Acceptable" : "À risque"}
+                                </p>
+                            </div>
                         </div>
-                        <p className="text-xl font-black text-amber-400">{formatCurrency(optimalPrices.stopLoss)}</p>
-                        <p className="text-[9px] text-zinc-600 font-bold mt-1">1.5x ATR sous le prix d'achat</p>
-                    </div>
-                    <div className="p-4 rounded-xl bg-white/[0.03] border border-white/10">
-                        <div className="flex items-center gap-2 mb-2">
-                            <Target className="w-4 h-4 text-cyan-400" />
-                            <span className="text-[9px] font-black text-cyan-400 uppercase tracking-widest">Take-Profit</span>
-                        </div>
-                        <p className="text-xl font-black text-cyan-400">{formatCurrency(optimalPrices.takeProfit)}</p>
-                        <p className="text-[9px] text-zinc-600 font-bold mt-1">Prix de vente optimal</p>
-                    </div>
-                    <div className="p-4 rounded-xl bg-white/[0.03] border border-white/10">
-                        <div className="flex items-center gap-2 mb-2">
-                            <Gauge className="w-4 h-4 text-purple-400" />
-                            <span className="text-[9px] font-black text-purple-400 uppercase tracking-widest">Risk/Reward</span>
-                        </div>
-                        <p className={cn(
-                            "text-xl font-black",
-                            optimalPrices.riskRewardRatio >= 2 ? "text-emerald-400" :
-                                optimalPrices.riskRewardRatio >= 1 ? "text-amber-400" : "text-rose-400"
-                        )}>
-                            1:{optimalPrices.riskRewardRatio.toFixed(2)}
-                        </p>
-                        <p className="text-[9px] text-zinc-600 font-bold mt-1">
-                            {optimalPrices.riskRewardRatio >= 2 ? "Excellent" :
-                                optimalPrices.riskRewardRatio >= 1.5 ? "Bon" :
-                                    optimalPrices.riskRewardRatio >= 1 ? "Acceptable" : "À risque"}
-                        </p>
-                    </div>
-                </div>
 
-                {/* Fibonacci & Dynamic Levels */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {/* Fibonacci Levels */}
-                    <div className="p-4 rounded-xl bg-white/[0.03] border border-white/10">
-                        <div className="flex items-center gap-2 mb-3">
-                            <Activity className="w-4 h-4 text-indigo-400" />
-                            <span className="text-[9px] font-black text-indigo-400 uppercase tracking-widest">
-                                Niveaux Fibonacci
-                            </span>
-                        </div>
-                        <div className="grid grid-cols-3 gap-3">
-                            <div className="text-center">
-                                <p className="text-[8px] text-zinc-600 font-bold mb-1">23.6%</p>
-                                <p className="text-xs font-bold text-zinc-300">{formatCurrency(optimalPrices.fibonacci.retracement236)}</p>
+                        {/* Fibonacci & Dynamic Levels */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {/* Fibonacci Levels */}
+                            <div className="p-4 rounded-xl bg-white/[0.03] border border-white/10">
+                                <div className="flex items-center gap-2 mb-3">
+                                    <Activity className="w-4 h-4 text-indigo-400" />
+                                    <span className="text-[9px] font-black text-indigo-400 uppercase tracking-widest">
+                                        Niveaux Fibonacci
+                                    </span>
+                                </div>
+                                <div className="grid grid-cols-3 gap-3">
+                                    <div className="text-center">
+                                        <p className="text-[8px] text-zinc-600 font-bold mb-1">23.6%</p>
+                                        <p className="text-xs font-bold text-zinc-300">{formatCurrency(optimalPrices.fibonacci.retracement236)}</p>
+                                    </div>
+                                    <div className="text-center">
+                                        <p className="text-[8px] text-zinc-600 font-bold mb-1">38.2%</p>
+                                        <p className="text-xs font-bold text-zinc-300">{formatCurrency(optimalPrices.fibonacci.retracement382)}</p>
+                                    </div>
+                                    <div className="text-center">
+                                        <p className="text-[8px] text-zinc-600 font-bold mb-1">50%</p>
+                                        <p className="text-xs font-bold text-zinc-300">{formatCurrency(optimalPrices.fibonacci.retracement500)}</p>
+                                    </div>
+                                    <div className="text-center">
+                                        <p className="text-[8px] text-gold font-bold mb-1">61.8% ★</p>
+                                        <p className="text-xs font-bold text-gold">{formatCurrency(optimalPrices.fibonacci.retracement618)}</p>
+                                    </div>
+                                    <div className="text-center">
+                                        <p className="text-[8px] text-zinc-600 font-bold mb-1">78.6%</p>
+                                        <p className="text-xs font-bold text-zinc-300">{formatCurrency(optimalPrices.fibonacci.retracement786)}</p>
+                                    </div>
+                                    <div className="text-center">
+                                        <p className="text-[8px] text-cyan-400 font-bold mb-1">Ext 161.8%</p>
+                                        <p className="text-xs font-bold text-cyan-400">{formatCurrency(optimalPrices.fibonacci.extension1618)}</p>
+                                    </div>
+                                </div>
                             </div>
-                            <div className="text-center">
-                                <p className="text-[8px] text-zinc-600 font-bold mb-1">38.2%</p>
-                                <p className="text-xs font-bold text-zinc-300">{formatCurrency(optimalPrices.fibonacci.retracement382)}</p>
-                            </div>
-                            <div className="text-center">
-                                <p className="text-[8px] text-zinc-600 font-bold mb-1">50%</p>
-                                <p className="text-xs font-bold text-zinc-300">{formatCurrency(optimalPrices.fibonacci.retracement500)}</p>
-                            </div>
-                            <div className="text-center">
-                                <p className="text-[8px] text-gold font-bold mb-1">61.8% ★</p>
-                                <p className="text-xs font-bold text-gold">{formatCurrency(optimalPrices.fibonacci.retracement618)}</p>
-                            </div>
-                            <div className="text-center">
-                                <p className="text-[8px] text-zinc-600 font-bold mb-1">78.6%</p>
-                                <p className="text-xs font-bold text-zinc-300">{formatCurrency(optimalPrices.fibonacci.retracement786)}</p>
-                            </div>
-                            <div className="text-center">
-                                <p className="text-[8px] text-cyan-400 font-bold mb-1">Ext 161.8%</p>
-                                <p className="text-xs font-bold text-cyan-400">{formatCurrency(optimalPrices.fibonacci.extension1618)}</p>
-                            </div>
-                        </div>
-                    </div>
 
-                    {/* Dynamic S/R from K-Means */}
-                    <div className="p-4 rounded-xl bg-white/[0.03] border border-white/10">
-                        <div className="flex items-center gap-2 mb-3">
-                            <Cpu className="w-4 h-4 text-pink-400" />
-                            <span className="text-[9px] font-black text-pink-400 uppercase tracking-widest">
-                                S/R Dynamique (K-Means)
-                            </span>
-                            <span className="ml-auto text-[9px] font-bold text-zinc-500">
-                                Conf: {optimalPrices.dynamicLevels.clusterConfidence.toFixed(0)}%
-                            </span>
-                        </div>
-                        <div className="space-y-2">
-                            <div className="flex justify-between items-center">
-                                <span className="text-[9px] text-rose-400 font-bold">Résistance Forte</span>
-                                <span className="text-xs font-bold text-rose-400">{formatCurrency(optimalPrices.dynamicLevels.strongResistance)}</span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                                <span className="text-[9px] text-rose-300 font-bold">Résistance Faible</span>
-                                <span className="text-xs font-bold text-rose-300">{formatCurrency(optimalPrices.dynamicLevels.weakResistance)}</span>
-                            </div>
-                            <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent my-2"></div>
-                            <div className="flex justify-between items-center">
-                                <span className="text-[9px] text-emerald-300 font-bold">Support Faible</span>
-                                <span className="text-xs font-bold text-emerald-300">{formatCurrency(optimalPrices.dynamicLevels.weakSupport)}</span>
-                            </div>
-                            <div className="flex justify-between items-center">
-                                <span className="text-[9px] text-emerald-400 font-bold">Support Fort</span>
-                                <span className="text-xs font-bold text-emerald-400">{formatCurrency(optimalPrices.dynamicLevels.strongSupport)}</span>
+                            {/* Dynamic S/R from K-Means */}
+                            <div className="p-4 rounded-xl bg-white/[0.03] border border-white/10">
+                                <div className="flex items-center gap-2 mb-3">
+                                    <Cpu className="w-4 h-4 text-pink-400" />
+                                    <span className="text-[9px] font-black text-pink-400 uppercase tracking-widest">
+                                        S/R Dynamique (K-Means)
+                                    </span>
+                                    <span className="ml-auto text-[9px] font-bold text-zinc-500">
+                                        Conf: {optimalPrices.dynamicLevels.clusterConfidence.toFixed(0)}%
+                                    </span>
+                                </div>
+                                <div className="space-y-2">
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-[9px] text-rose-400 font-bold">Résistance Forte</span>
+                                        <span className="text-xs font-bold text-rose-400">{formatCurrency(optimalPrices.dynamicLevels.strongResistance)}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-[9px] text-rose-300 font-bold">Résistance Faible</span>
+                                        <span className="text-xs font-bold text-rose-300">{formatCurrency(optimalPrices.dynamicLevels.weakResistance)}</span>
+                                    </div>
+                                    <div className="h-px bg-gradient-to-r from-transparent via-white/10 to-transparent my-2"></div>
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-[9px] text-emerald-300 font-bold">Support Faible</span>
+                                        <span className="text-xs font-bold text-emerald-300">{formatCurrency(optimalPrices.dynamicLevels.weakSupport)}</span>
+                                    </div>
+                                    <div className="flex justify-between items-center">
+                                        <span className="text-[9px] text-emerald-400 font-bold">Support Fort</span>
+                                        <span className="text-xs font-bold text-emerald-400">{formatCurrency(optimalPrices.dynamicLevels.strongSupport)}</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                )}
             </div>
 
             {/* ML Predictions Grid */}

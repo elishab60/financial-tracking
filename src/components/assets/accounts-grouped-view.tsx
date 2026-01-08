@@ -1,10 +1,11 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { Asset, InvestmentAccount } from "@/types"
 import { getInvestmentAccounts } from "@/app/actions/investment-accounts"
 import { updateAsset } from "@/app/actions/assets"
 import { INVESTMENT_ACCOUNT_TYPES, getBrokerById } from "@/lib/data/brokers"
+import { calculateAssetDividend, getFrequencyLabel, getTypeLabel } from "@/lib/data/dividends"
 import { motion, AnimatePresence } from "framer-motion"
 import {
     ChevronDown,
@@ -16,7 +17,10 @@ import {
     Wallet,
     Building2,
     Plus,
-    GripVertical
+    GripVertical,
+    Coins,
+    CircleDollarSign,
+    RefreshCcw
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { AssetIcon } from "@/components/ui/asset-icon"
@@ -98,6 +102,33 @@ export function AccountsGroupedView({ assets }: AccountsGroupedViewProps) {
         return accountAssets.reduce((sum, asset) => sum + (asset.current_value || 0), 0)
     }
 
+    // Calculate annual dividends per account
+    const getAccountDividends = (accountId: string | null) => {
+        const accountAssets = assetsByAccount.get(accountId) || []
+        let totalAnnual = 0
+        let distributingCount = 0
+        let accumulatingCount = 0
+
+        accountAssets.forEach(asset => {
+            if (asset.type === 'stock' || asset.type === 'crypto') {
+                const div = calculateAssetDividend(asset.symbol, asset.quantity, asset.current_price || 0)
+                if (div.type === 'accumulating') {
+                    accumulatingCount++
+                } else {
+                    totalAnnual += div.annualDividend
+                    if (div.annualDividend > 0) distributingCount++
+                }
+            }
+        })
+
+        return {
+            annual: totalAnnual,
+            monthly: totalAnnual / 12,
+            distributingCount,
+            accumulatingCount
+        }
+    }
+
     const toggleAccount = (accountId: string) => {
         const newExpanded = new Set(expandedAccounts)
         if (newExpanded.has(accountId)) {
@@ -157,6 +188,7 @@ export function AccountsGroupedView({ assets }: AccountsGroupedViewProps) {
                 const colors = ACCOUNT_COLORS[account.account_type] || ACCOUNT_COLORS.other
                 const isExpanded = expandedAccounts.has(account.id)
                 const isDragOver = dragOverAccount === account.id
+                const accountDividends = getAccountDividends(account.id)
 
                 return (
                     <motion.div
@@ -208,6 +240,28 @@ export function AccountsGroupedView({ assets }: AccountsGroupedViewProps) {
 
                             <div className="text-right">
                                 <div className="text-2xl font-black text-white">{formatCurrency(total)}</div>
+                                {accountDividends.annual > 0 && (
+                                    <div className="flex items-center gap-2 justify-end mt-1">
+                                        <div className="flex items-center gap-1">
+                                            <Coins className="w-3 h-3 text-emerald-400" />
+                                            <span className="text-[10px] font-bold text-emerald-400">
+                                                +{formatCurrency(accountDividends.annual)}/an
+                                            </span>
+                                        </div>
+                                        <span className="text-[9px] text-zinc-600">•</span>
+                                        <span className="text-[9px] font-medium text-amber-400">
+                                            {formatCurrency(accountDividends.monthly)}/mois
+                                        </span>
+                                    </div>
+                                )}
+                                {accountDividends.accumulatingCount > 0 && (
+                                    <div className="flex items-center gap-1 justify-end mt-0.5">
+                                        <RefreshCcw className="w-3 h-3 text-cyan-400" />
+                                        <span className="text-[9px] font-medium text-cyan-400">
+                                            {accountDividends.accumulatingCount} capitalisant{accountDividends.accumulatingCount > 1 ? 's' : ''}
+                                        </span>
+                                    </div>
+                                )}
                             </div>
 
                             <ChevronDown className={cn(
@@ -227,50 +281,86 @@ export function AccountsGroupedView({ assets }: AccountsGroupedViewProps) {
                                     className="border-t border-white/5"
                                 >
                                     <div className="divide-y divide-white/[0.03]">
-                                        {accountAssets.map((asset) => (
-                                            <div
-                                                key={asset.id}
-                                                draggable
-                                                onDragStart={(e) => handleDragStart(e, asset.id)}
-                                                onDragEnd={handleDragEnd}
-                                                onClick={() => setSelectedAsset(asset)}
-                                                className={cn(
-                                                    "p-4 pl-8 flex items-center gap-4 hover:bg-white/[0.02] transition-colors group cursor-pointer",
-                                                    draggingAsset === asset.id && "opacity-50"
-                                                )}
-                                            >
-                                                <GripVertical className="w-4 h-4 text-zinc-600 opacity-0 group-hover:opacity-100 transition-opacity" />
-                                                <AssetIcon
-                                                    symbol={asset.symbol}
-                                                    type={asset.type}
-                                                    name={asset.name}
-                                                    image={asset.image}
-                                                    id={asset.id}
-                                                />
-                                                <div className="flex-1 min-w-0">
-                                                    <span className="font-bold text-white text-sm">{asset.name}</span>
-                                                    {asset.symbol && (
-                                                        <span className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest ml-2">
-                                                            {asset.symbol}
-                                                        </span>
+                                        {accountAssets.map((asset) => {
+                                            const assetDiv = (asset.type === 'stock' || asset.type === 'crypto')
+                                                ? calculateAssetDividend(asset.symbol, asset.quantity, asset.current_price || 0)
+                                                : null
+
+                                            return (
+                                                <div
+                                                    key={asset.id}
+                                                    draggable
+                                                    onDragStart={(e) => handleDragStart(e, asset.id)}
+                                                    onDragEnd={handleDragEnd}
+                                                    onClick={() => setSelectedAsset(asset)}
+                                                    className={cn(
+                                                        "p-4 pl-8 flex items-center gap-4 hover:bg-white/[0.02] transition-colors group cursor-pointer",
+                                                        draggingAsset === asset.id && "opacity-50"
                                                     )}
-                                                </div>
-                                                <div className="text-right">
-                                                    <div className="font-bold text-white text-sm">
-                                                        {formatCurrency(asset.current_value || 0)}
-                                                    </div>
-                                                    {asset.pnl_percent != null && (
-                                                        <div className={cn(
-                                                            "text-[10px] font-black",
-                                                            (asset.pnl_percent || 0) >= 0 ? "text-emerald-400" : "text-rose-400"
-                                                        )}>
-                                                            {(asset.pnl_percent || 0) >= 0 ? "+" : ""}{asset.pnl_percent?.toFixed(2)}%
+                                                >
+                                                    <GripVertical className="w-4 h-4 text-zinc-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                    <AssetIcon
+                                                        symbol={asset.symbol}
+                                                        type={asset.type}
+                                                        name={asset.name}
+                                                        image={asset.image}
+                                                        id={asset.id}
+                                                    />
+                                                    <div className="flex-1 min-w-0">
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="font-bold text-white text-sm">{asset.name}</span>
+                                                            {asset.symbol && (
+                                                                <span className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest">
+                                                                    {asset.symbol}
+                                                                </span>
+                                                            )}
+                                                            {assetDiv && assetDiv.type === 'accumulating' && (
+                                                                <span className="text-[8px] font-bold text-cyan-400 bg-cyan-500/10 px-1.5 py-0.5 rounded border border-cyan-500/20">
+                                                                    CAPITALISANT
+                                                                </span>
+                                                            )}
                                                         </div>
-                                                    )}
+                                                        {assetDiv && assetDiv.annualDividend > 0 && (
+                                                            <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                                                                <span className="text-[9px] text-zinc-500">
+                                                                    {asset.quantity % 1 === 0
+                                                                        ? `${asset.quantity} action${asset.quantity > 1 ? 's' : ''}`
+                                                                        : `${asset.quantity.toFixed(4)} actions`
+                                                                    }
+                                                                </span>
+                                                                <span className="text-[9px] text-zinc-600">→</span>
+                                                                <span className="text-[9px] text-emerald-400 font-bold">
+                                                                    <Coins className="w-3 h-3 inline mr-0.5" />
+                                                                    {formatCurrency(assetDiv.annualDividend)}/an
+                                                                </span>
+                                                                <span className="text-[9px] text-zinc-600">•</span>
+                                                                <span className="text-[9px] text-amber-400 font-medium">
+                                                                    {formatCurrency(assetDiv.nextPayment)} prochain
+                                                                </span>
+                                                                <span className="text-[9px] text-zinc-600">•</span>
+                                                                <span className="text-[9px] text-zinc-500">
+                                                                    {getFrequencyLabel(assetDiv.frequency)}
+                                                                </span>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <div className="font-bold text-white text-sm">
+                                                            {formatCurrency(asset.current_value || 0)}
+                                                        </div>
+                                                        {asset.pnl_percent != null && (
+                                                            <div className={cn(
+                                                                "text-[10px] font-black",
+                                                                (asset.pnl_percent || 0) >= 0 ? "text-emerald-400" : "text-rose-400"
+                                                            )}>
+                                                                {(asset.pnl_percent || 0) >= 0 ? "+" : ""}{asset.pnl_percent?.toFixed(2)}%
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <AssetActions asset={asset} />
                                                 </div>
-                                                <AssetActions asset={asset} />
-                                            </div>
-                                        ))}
+                                            )
+                                        })}
                                     </div>
                                 </motion.div>
                             )}

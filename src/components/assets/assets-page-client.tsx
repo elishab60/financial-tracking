@@ -55,3 +55,4 @@ export function AssetsPageClient({ initialAssets }: AssetsPageClientProps) {
         </div>
     )
 }
+

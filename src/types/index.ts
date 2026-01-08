@@ -12,6 +12,7 @@ export interface InvestmentAccount {
   broker_id?: string;
   broker_name?: string;
   notes?: string;
+  cash_balance?: number; // Cash available in the account
   created_at: string;
   updated_at: string;
   // Computed fields
@@ -69,6 +70,19 @@ export interface AssetPurchase {
   total_cost?: number; // Computed
 }
 
+export interface AssetSale {
+  id: string;
+  asset_id: string;
+  user_id: string;
+  quantity: number;
+  unit_price: number;
+  fees: number;
+  sale_date: string | null;
+  notes: string | null;
+  realized_pnl?: number; // (sale_price - PRU) * quantity - fees
+  created_at: string;
+  total_proceeds?: number; // Computed: quantity * unit_price - fees
+}
 
 export interface AssetValuation {
   id: string;

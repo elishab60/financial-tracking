@@ -142,3 +142,24 @@ create policy "Users can manage their own integrations" on integrations for all 
 
 alter table asset_purchases enable row level security;
 create policy "Users can manage their own purchases" on asset_purchases for all using (auth.uid() = user_id);
+
+-- Asset Sales (for tracking sell transactions)
+create table if not exists asset_sales (
+  id uuid default gen_random_uuid() primary key,
+  asset_id uuid references assets on delete cascade not null,
+  user_id uuid references auth.users on delete cascade not null,
+  quantity decimal not null,
+  unit_price decimal not null,
+  fees decimal default 0,
+  sale_date timestamp with time zone,
+  notes text,
+  realized_pnl decimal, -- Computed: (sale_price - PRU) * quantity - fees
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+alter table asset_sales enable row level security;
+create policy "Users can manage their own sales" on asset_sales for all using (auth.uid() = user_id);
+
+-- Investment Accounts (for grouping assets)
+-- Note: Add cash_balance column if not exists
+-- alter table investment_accounts add column if not exists cash_balance decimal default 0;

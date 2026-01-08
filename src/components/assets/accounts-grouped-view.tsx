@@ -262,6 +262,14 @@ export function AccountsGroupedView({ assets }: AccountsGroupedViewProps) {
                                         </span>
                                     </div>
                                 )}
+                                {(account.cash_balance || 0) > 0 && (
+                                    <div className="flex items-center gap-1 justify-end mt-0.5">
+                                        <CircleDollarSign className="w-3 h-3 text-blue-400" />
+                                        <span className="text-[9px] font-bold text-blue-400">
+                                            Cash: {formatCurrency(account.cash_balance || 0)}
+                                        </span>
+                                    </div>
+                                )}
                             </div>
 
                             <ChevronDown className={cn(
@@ -281,86 +289,94 @@ export function AccountsGroupedView({ assets }: AccountsGroupedViewProps) {
                                     className="border-t border-white/5"
                                 >
                                     <div className="divide-y divide-white/[0.03]">
-                                        {accountAssets.map((asset) => {
-                                            const assetDiv = (asset.type === 'stock' || asset.type === 'crypto')
-                                                ? calculateAssetDividend(asset.symbol, asset.quantity, asset.current_price || 0)
-                                                : null
+                                        {accountAssets
+                                            .filter(asset => (asset.quantity || 0) > 0 || asset.valuation_mode === 'manual')
+                                            .map((asset) => {
+                                                const assetDiv = (asset.type === 'stock' || asset.type === 'crypto')
+                                                    ? calculateAssetDividend(asset.symbol, asset.quantity, asset.current_price || 0)
+                                                    : null
 
-                                            return (
-                                                <div
-                                                    key={asset.id}
-                                                    draggable
-                                                    onDragStart={(e) => handleDragStart(e, asset.id)}
-                                                    onDragEnd={handleDragEnd}
-                                                    onClick={() => setSelectedAsset(asset)}
-                                                    className={cn(
-                                                        "p-4 pl-8 flex items-center gap-4 hover:bg-white/[0.02] transition-colors group cursor-pointer",
-                                                        draggingAsset === asset.id && "opacity-50"
-                                                    )}
-                                                >
-                                                    <GripVertical className="w-4 h-4 text-zinc-600 opacity-0 group-hover:opacity-100 transition-opacity" />
-                                                    <AssetIcon
-                                                        symbol={asset.symbol}
-                                                        type={asset.type}
-                                                        name={asset.name}
-                                                        image={asset.image}
-                                                        id={asset.id}
-                                                    />
-                                                    <div className="flex-1 min-w-0">
-                                                        <div className="flex items-center gap-2">
-                                                            <span className="font-bold text-white text-sm">{asset.name}</span>
-                                                            {asset.symbol && (
-                                                                <span className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest">
-                                                                    {asset.symbol}
-                                                                </span>
-                                                            )}
-                                                            {assetDiv && assetDiv.type === 'accumulating' && (
-                                                                <span className="text-[8px] font-bold text-cyan-400 bg-cyan-500/10 px-1.5 py-0.5 rounded border border-cyan-500/20">
-                                                                    CAPITALISANT
-                                                                </span>
-                                                            )}
-                                                        </div>
-                                                        {assetDiv && assetDiv.annualDividend > 0 && (
-                                                            <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                                                                <span className="text-[9px] text-zinc-500">
-                                                                    {asset.quantity % 1 === 0
-                                                                        ? `${asset.quantity} action${asset.quantity > 1 ? 's' : ''}`
-                                                                        : `${asset.quantity.toFixed(4)} actions`
-                                                                    }
-                                                                </span>
-                                                                <span className="text-[9px] text-zinc-600">→</span>
-                                                                <span className="text-[9px] text-emerald-400 font-bold">
-                                                                    <Coins className="w-3 h-3 inline mr-0.5" />
-                                                                    {formatCurrency(assetDiv.annualDividend)}/an
-                                                                </span>
-                                                                <span className="text-[9px] text-zinc-600">•</span>
-                                                                <span className="text-[9px] text-amber-400 font-medium">
-                                                                    {formatCurrency(assetDiv.nextPayment)} prochain
-                                                                </span>
-                                                                <span className="text-[9px] text-zinc-600">•</span>
-                                                                <span className="text-[9px] text-zinc-500">
-                                                                    {getFrequencyLabel(assetDiv.frequency)}
-                                                                </span>
-                                                            </div>
+                                                return (
+                                                    <div
+                                                        key={asset.id}
+                                                        draggable
+                                                        onDragStart={(e) => handleDragStart(e, asset.id)}
+                                                        onDragEnd={handleDragEnd}
+                                                        className={cn(
+                                                            "p-4 pl-8 flex items-center gap-4 hover:bg-white/[0.02] transition-colors group",
+                                                            draggingAsset === asset.id && "opacity-50"
                                                         )}
-                                                    </div>
-                                                    <div className="text-right">
-                                                        <div className="font-bold text-white text-sm">
-                                                            {formatCurrency(asset.current_value || 0)}
-                                                        </div>
-                                                        {asset.pnl_percent != null && (
-                                                            <div className={cn(
-                                                                "text-[10px] font-black",
-                                                                (asset.pnl_percent || 0) >= 0 ? "text-emerald-400" : "text-rose-400"
-                                                            )}>
-                                                                {(asset.pnl_percent || 0) >= 0 ? "+" : ""}{asset.pnl_percent?.toFixed(2)}%
+                                                    >
+                                                        {/* Clickable content area - opens detail dialog */}
+                                                        <div
+                                                            className="flex items-center gap-4 flex-1 min-w-0 cursor-pointer"
+                                                            onClick={() => setSelectedAsset(asset)}
+                                                        >
+                                                            <GripVertical className="w-4 h-4 text-zinc-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                            <AssetIcon
+                                                                symbol={asset.symbol}
+                                                                type={asset.type}
+                                                                name={asset.name}
+                                                                image={asset.image}
+                                                                id={asset.id}
+                                                            />
+                                                            <div className="flex-1 min-w-0">
+                                                                <div className="flex items-center gap-2">
+                                                                    <span className="font-bold text-white text-sm">{asset.name}</span>
+                                                                    {asset.symbol && (
+                                                                        <span className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest">
+                                                                            {asset.symbol}
+                                                                        </span>
+                                                                    )}
+                                                                    {assetDiv && assetDiv.type === 'accumulating' && (
+                                                                        <span className="text-[8px] font-bold text-cyan-400 bg-cyan-500/10 px-1.5 py-0.5 rounded border border-cyan-500/20">
+                                                                            CAPITALISANT
+                                                                        </span>
+                                                                    )}
+                                                                </div>
+                                                                {assetDiv && assetDiv.annualDividend > 0 && (
+                                                                    <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                                                                        <span className="text-[9px] text-zinc-500">
+                                                                            {asset.quantity % 1 === 0
+                                                                                ? `${asset.quantity} action${asset.quantity > 1 ? 's' : ''}`
+                                                                                : `${asset.quantity.toFixed(4)} actions`
+                                                                            }
+                                                                        </span>
+                                                                        <span className="text-[9px] text-zinc-600">→</span>
+                                                                        <span className="text-[9px] text-emerald-400 font-bold">
+                                                                            <Coins className="w-3 h-3 inline mr-0.5" />
+                                                                            {formatCurrency(assetDiv.annualDividend)}/an
+                                                                        </span>
+                                                                        <span className="text-[9px] text-zinc-600">•</span>
+                                                                        <span className="text-[9px] text-amber-400 font-medium">
+                                                                            {formatCurrency(assetDiv.nextPayment)} prochain
+                                                                        </span>
+                                                                        <span className="text-[9px] text-zinc-600">•</span>
+                                                                        <span className="text-[9px] text-zinc-500">
+                                                                            {getFrequencyLabel(assetDiv.frequency)}
+                                                                        </span>
+                                                                    </div>
+                                                                )}
                                                             </div>
-                                                        )}
+                                                            <div className="text-right">
+                                                                <div className="font-bold text-white text-sm">
+                                                                    {formatCurrency(asset.current_value || 0)}
+                                                                </div>
+                                                                {asset.pnl_percent != null && (
+                                                                    <div className={cn(
+                                                                        "text-[10px] font-black",
+                                                                        (asset.pnl_percent || 0) >= 0 ? "text-emerald-400" : "text-rose-400"
+                                                                    )}>
+                                                                        {(asset.pnl_percent || 0) >= 0 ? "+" : ""}{asset.pnl_percent?.toFixed(2)}%
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                        {/* Actions - outside clickable area */}
+                                                        <AssetActions asset={asset} />
                                                     </div>
-                                                    <AssetActions asset={asset} />
-                                                </div>
-                                            )
-                                        })}
+                                                )
+                                            })}
                                     </div>
                                 </motion.div>
                             )}
@@ -409,42 +425,50 @@ export function AccountsGroupedView({ assets }: AccountsGroupedViewProps) {
 
                         {unassignedAssets.length > 0 && (
                             <div className="divide-y divide-white/[0.03] border-t border-white/5">
-                                {unassignedAssets.map((asset) => (
-                                    <div
-                                        key={asset.id}
-                                        draggable
-                                        onDragStart={(e) => handleDragStart(e, asset.id)}
-                                        onDragEnd={handleDragEnd}
-                                        onClick={() => setSelectedAsset(asset)}
-                                        className={cn(
-                                            "p-4 pl-8 flex items-center gap-4 hover:bg-white/[0.02] transition-colors group cursor-pointer",
-                                            draggingAsset === asset.id && "opacity-50"
-                                        )}
-                                    >
-                                        <GripVertical className="w-4 h-4 text-zinc-600 opacity-0 group-hover:opacity-100 transition-opacity" />
-                                        <AssetIcon
-                                            symbol={asset.symbol}
-                                            type={asset.type}
-                                            name={asset.name}
-                                            image={asset.image}
-                                            id={asset.id}
-                                        />
-                                        <div className="flex-1 min-w-0">
-                                            <span className="font-bold text-white text-sm">{asset.name}</span>
-                                            {asset.symbol && (
-                                                <span className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest ml-2">
-                                                    {asset.symbol}
-                                                </span>
+                                {unassignedAssets
+                                    .filter(asset => (asset.quantity || 0) > 0 || asset.valuation_mode === 'manual')
+                                    .map((asset) => (
+                                        <div
+                                            key={asset.id}
+                                            draggable
+                                            onDragStart={(e) => handleDragStart(e, asset.id)}
+                                            onDragEnd={handleDragEnd}
+                                            className={cn(
+                                                "p-4 pl-8 flex items-center gap-4 hover:bg-white/[0.02] transition-colors group",
+                                                draggingAsset === asset.id && "opacity-50"
                                             )}
-                                        </div>
-                                        <div className="text-right">
-                                            <div className="font-bold text-white text-sm">
-                                                {formatCurrency(asset.current_value || 0)}
+                                        >
+                                            {/* Clickable content area */}
+                                            <div
+                                                className="flex items-center gap-4 flex-1 min-w-0 cursor-pointer"
+                                                onClick={() => setSelectedAsset(asset)}
+                                            >
+                                                <GripVertical className="w-4 h-4 text-zinc-600 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                <AssetIcon
+                                                    symbol={asset.symbol}
+                                                    type={asset.type}
+                                                    name={asset.name}
+                                                    image={asset.image}
+                                                    id={asset.id}
+                                                />
+                                                <div className="flex-1 min-w-0">
+                                                    <span className="font-bold text-white text-sm">{asset.name}</span>
+                                                    {asset.symbol && (
+                                                        <span className="text-[9px] text-zinc-600 font-bold uppercase tracking-widest ml-2">
+                                                            {asset.symbol}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <div className="text-right">
+                                                    <div className="font-bold text-white text-sm">
+                                                        {formatCurrency(asset.current_value || 0)}
+                                                    </div>
+                                                </div>
                                             </div>
+                                            {/* Actions - outside clickable area */}
+                                            <AssetActions asset={asset} />
                                         </div>
-                                        <AssetActions asset={asset} />
-                                    </div>
-                                ))}
+                                    ))}
                             </div>
                         )}
                     </motion.div>
